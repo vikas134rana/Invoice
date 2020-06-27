@@ -2,6 +2,8 @@ package com.vikas.invoice.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -11,14 +13,15 @@ public class InvoiceItem {
 
 	@Column
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
 	@ManyToOne
-	@JoinColumn(name = "item_id", referencedColumnName = "id")
+	@JoinColumn(name = "item_id")
 	private Item item;
 
 	@ManyToOne
-	@JoinColumn(name = "invoice_id", referencedColumnName = "id")
+	@JoinColumn(name = "invoice_id")
 	private Invoice invoice;
 
 	@Column

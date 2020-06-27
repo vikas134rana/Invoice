@@ -9,18 +9,21 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
 @Entity
-public class Buyer {
+public class InvoicePdf {
 
 	@Column
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-
+	
+	@Column
+	private byte[] pdfData;
+	
 	@OneToOne
-	@JoinColumn(name = "address_id", referencedColumnName = "id")
-	private Address address;
-
-	public Buyer() {
+	@JoinColumn(name = "invoice_id")
+	private Invoice invoice;
+	
+	public InvoicePdf() {
 	}
 
 	public int getId() {
@@ -31,17 +34,26 @@ public class Buyer {
 		this.id = id;
 	}
 
-	public Address getAddress() {
-		return address;
+	public byte[] getPdfData() {
+		return pdfData;
 	}
 
-	public void setAddress(Address address) {
-		this.address = address;
+	public void setPdfData(byte[] pdfData) {
+		this.pdfData = pdfData;
+	}
+
+	public Invoice getInvoice() {
+		return invoice;
+	}
+
+	public void setInvoice(Invoice invoice) {
+		this.invoice = invoice;
 	}
 
 	@Override
 	public String toString() {
-		return "Buyer [id=" + id + ", address=" + address + "]";
+		return "InvoicePdf [id=" + id + ", pdfDataLength=" + pdfData.length + ", invoice=" + invoice + "]";
 	}
 
+	
 }

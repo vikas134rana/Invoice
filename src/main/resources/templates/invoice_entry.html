@@ -1,110 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Bootstrap Example</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  <style>
+<title>Asset - InvoiceEntry</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    /* Remove the navbar's default margin-bottom and rounded borders */ 
-    .navbar {
-      margin-bottom: 0;
-      border-radius: 0;
-    }
+	<div th:replace="header :: headerHead"></div>
 
-    #container{
-        margin: 10px;
-    }
+<style>
+#container {
+	margin: 10px;
+}
 
-    .form-section-label{
-        font-weight: bold;
-    }
-    
-    .form-section{
-        margin-top: 10px;
-    }
-    
-  </style>
+.form-section-label {
+	font-weight: bold;
+}
+
+.form-section {
+	margin-top: 10px;
+}
+
+#buttonsTable td {
+	padding: 10px;
+}
+
+#sellerTable, #buyerTable, #itemtable {
+	margin-top: 15px;
+}
+</style>
+
+<script type="text/javascript">
+	/* $(document).ready(function () {
+	 $('.nav li a').click(function(e) {
+
+	 $('.nav li.active').removeClass('active');
+
+	 var $parent = $(this).parent();
+	 $parent.addClass('active');
+	 e.preventDefault();
+	 });
+	 });
+	 */
+</script>
+
 </head>
 <body>
 
-<nav class="navbar navbar-inverse">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>                        
-      </button>
-      <a class="navbar-brand" href="#">Asset & Scrap Portal</a>
-    </div>
-    <div class="collapse navbar-collapse" id="myNavbar">
-      <ul class="nav navbar-nav navbar-right">
-        <li class="active"><a href="#">Invoice Price Maintainance</a></li>
-        <li><a href="#">Invoice Entry</a></li>
-        <li><a href="#">Invoice Printing</a></li>
-        <li><a href="#">Sales Register</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+
+	<div th:replace="header::pageHeader"></div>
+
+	<div id="container">
+
+		<form action="/asset/saveInvoiceEntry">
+
+			<div id="service_type" class="form-section">
+				<div class="form-section-label">Service Type</div>
+
+				<label class="radio-inline"> <input value="1" type="radio" name="serviceType">Asset Transfer
+				</label> <label class="radio-inline"> <input value="2" type="radio" name="serviceType">Other
+				</label> <label class="radio-inline"> <input value="3" type="radio" name="serviceType">Cross
+				</label> <label class="radio-inline"> <input value="4" type="radio" name="serviceType">Export
+				</label> <label class="radio-inline"> <input value="5" type="radio" name="serviceType">Inward Delivery Challan
+				</label> <label class="radio-inline"> <input value="6" type="radio" name="serviceType">Outward Delivery Challan
+				</label>
+			</div>
+
+			<table id="sellerTable">
+				<tr>
+					<th>Seller</th>
+				</tr>
+
+				<tr>
+					<td>Seller</td>
+					<td><select id="sellerId" name="sellerId">
+							<option th:each="seller : ${sellers}" th:value="${seller.id}" th:utext="${seller.address.name}" />
+					</select></td>
+				</tr>
+			</table>
+
+			<table id="buyerTable">
+				<tr>
+					<th>Buyer Detail</th>
+				</tr>
+
+				<tr>
+					<td>Buyer</td>
+					<td><select id="buyerId" name="buyerId">
+							<option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:utext="${buyer.address.name}" />
+					</select></td>
+				</tr>
+			</table>
 
 
-<div id="container">
-    
-    <form>
-        
-        <div id="service_type" class="form-section">
-            <div class="form-section-label">Service Type</div>
 
-            <label class="radio-inline">
-              <input type="radio" name="assetTransferRadio">Asset Transfer
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="otherRadio">Other
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="crossRadio">Cross
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="exportRadio">Export
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="inChallanRadio">Inward Delivery Challan
-            </label>
-            <label class="radio-inline">
-              <input type="radio" name="outChallinRadio">Outward Delivery Challan
-            </label>
-        </div> 
+			<table class="table table-striped table-bordered" id="itemtable">
+				<thead class="thead-dark">
+					<tr>
+						<th>Sr No.</th>
+						<th>Item</th>
+						<th>Category</th>
+						<th>Price</th>
+						<th>Quanity</th>
+						<th>SumPrice</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="item: ${items}">
+						<td th:text="${itemStat.index+1}"></td>
+						<td th:text="${item.name}"></td>
+						<td th:text="${item.category.name}"></td>
+						<td th:text="${item.price}"></td>
+						<td><input type="text" name="quantity"><input type="hidden" th:value="${item.id}" name="itemId"></td>
+						<td><input type="text" name="sumPrice" readonly></td>
+					</tr>
+				</tbody>
+			</table>
 
-        <div id="vendor_detail" class="form-section">
-            <div class="form-section-label">Vendor Detail</div>
+			<table id="buttonsTable">
+				<tr>
+					<td><input type="button" name="preview" value="Preview"></td>
+					<td><input type="button" name="reset" value="Reset"></td>
+					<td><input type="submit" name="save" value="Save"></td>
+				</tr>
+			</table>
 
-            <div class="form-check form-check-inline">
-                <label class="form-check-label">Vendor</label>
-                <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select Vendor
-                    <span class="caret"></span></button>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">HTML</a></li>
-                      <li><a href="#">CSS</a></li>
-                      <li><a href="#">JavaScript</a></li>
-                    </ul>
-                </div>
-            </div>
-            
+		</form>
 
-
-        </div> 
-
-        <div id="buttons">Buttons</div> 
-        <div id="itemss">Items</div> 
-
-    </form>
-</div>
+	</div>
 
 </body>
 </html>

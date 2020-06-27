@@ -1,7 +1,8 @@
 package com.vikas.invoice.controller.asset;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,24 +10,30 @@ import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.vikas.invoice.entity.Buyer;
 import com.vikas.invoice.entity.Invoice;
 import com.vikas.invoice.entity.InvoiceItem;
+import com.vikas.invoice.entity.InvoicePdf;
 import com.vikas.invoice.entity.Item;
 import com.vikas.invoice.entity.Seller;
 import com.vikas.invoice.entity.enums.InvoiceStatus;
+import com.vikas.invoice.features.invoicepdf.InvoiceBuilder;
 import com.vikas.invoice.service.BuyerService;
 import com.vikas.invoice.service.GeneratedInvoiceNumberService;
 import com.vikas.invoice.service.InvoiceItemService;
+import com.vikas.invoice.service.InvoicePdfService;
 import com.vikas.invoice.service.InvoiceService;
 import com.vikas.invoice.service.ItemService;
 import com.vikas.invoice.service.SellerService;
+import com.vikas.invoice.util.InvoiceUtils;
 
 @Controller
+@RequestMapping("/asset")
 public class AssetInvoiceEntryController {
 
 	@Autowired
@@ -43,35 +50,51 @@ public class AssetInvoiceEntryController {
 
 	@Autowired
 	InvoiceItemService invoiceItemService;
-	
+
 	@Autowired
 	GeneratedInvoiceNumberService generatedInvoiceNumberService;
 
-	@GetMapping("/assetInvoiceEntry")
-	public String loadForm() {
-		return null;
+	@Autowired
+	InvoicePdfService invoicePdfService;
+
+	@GetMapping("/invoiceEntry")
+	public String invoiceEntry(Model model) {
+
+		List<Seller> sellers = sellerService.getAllSellers();
+		List<Buyer> buyers = buyerService.getAllBuyers();
+		List<Item> items = itemService.getAllItems();
+
+		model.addAttribute("sellers", sellers);
+		model.addAttribute("buyers", buyers);
+		model.addAttribute("items", items);
+
+		return "invoice_entry";
 	}
 
 	// @formatter:off
-	@PostMapping("/saveAssetInvoiceEntry")
-	public void saveForm(
-			@RequestParam("type") int serviceType, 
+	@GetMapping("/saveInvoiceEntry")
+	public String saveForm(
+			@RequestParam("serviceType") int serviceType, 
 			@RequestParam("buyerId") int buyerId, 
 			@RequestParam("sellerId") int sellerId,
 			@RequestParam("itemId") Integer[] itemIds, 
-			@RequestParam("quantity") Integer[] quantities) {
+			@RequestParam("quantity") Integer[] quantities,
+			Model model) throws IOException {
 		// @formatter:on
+
+		Invoice invoice = new Invoice();
 
 		Buyer buyer = buyerService.getBuyerById(buyerId);
 		Seller seller = sellerService.getSellerById(sellerId);
 
+		// updating itemId and its quantity in the map
 		Map<Integer, Integer> itemQuantityMap = new HashMap<>();
 		for (int i = 0; i < itemIds.length; i++) {
-			if (quantities[i] > 0)
+			if (quantities[i] != null && quantities[i] > 0)
 				itemQuantityMap.put(itemIds[i], quantities[i]);
 		}
 
-		// create invoiceItem Object
+		// create invoiceItem Object (with the help of itemQuantityMap)
 		List<InvoiceItem> invoiceItems = new ArrayList<>();
 		for (Entry<Integer, Integer> entry : itemQuantityMap.entrySet()) {
 
@@ -84,16 +107,16 @@ public class AssetInvoiceEntryController {
 			invoiceItem.setQuantity(quantity);
 			double totalPrice = item.getPrice() * quantity;
 			invoiceItem.setTotalPrice(totalPrice);
+			invoiceItem.setInvoice(invoice);
 
 			invoiceItems.add(invoiceItem);
 		}
 
 		// create invoice Object
-		Invoice invoice = new Invoice();
 		invoice.setBuyer(buyer);
 		invoice.setSeller(seller);
 		invoice.setType(serviceType);
-		invoice.setCreationDate(new Date());
+		invoice.setCreationDate(LocalDateTime.now());
 		invoice.setStatusCode(InvoiceStatus.ACTIVE);
 
 		int totalQuantity = invoiceItems.stream().map(i -> i.getQuantity()).reduce(0, Integer::sum);
@@ -102,18 +125,24 @@ public class AssetInvoiceEntryController {
 		double invoiceTotalPrice = invoiceItems.stream().map(i -> i.getTotalPrice()).reduce(0d, Double::sum);
 		invoice.setTotalPrice(invoiceTotalPrice);
 
-		// Generate InvoiceNumber
-		String invoiceNumberStr = generatedInvoiceNumberService.generateInvoiceNumber(invoice);
+		String invoiceNumberStr = generatedInvoiceNumberService.generateInvoiceNumber(invoice); // Generate InvoiceNumber
 		invoice.setInvoiceNumber(invoiceNumberStr);
 
-		// saving invoice to database
-		invoiceService.save(invoice);
+		invoice.setInvoiceItems(invoiceItems);
 
-		// updating invoiceId in each invoiceItem
-		for (InvoiceItem invoiceItem : invoiceItems) {
-			invoiceItem.setInvoice(invoice);
-		}
+		InvoiceBuilder invoiceBuilder = InvoiceUtils.getInvoiceBuilder(invoice);
+		byte[] invoiceDataStream = invoiceBuilder.createInvoicePdf();
 
+		// create invoicePdf Object
+		InvoicePdf invoicePdf = new InvoicePdf();
+		invoicePdf.setPdfData(invoiceDataStream);
+		invoicePdf.setInvoice(invoice);
+
+		invoice.setInvoicePdf(invoicePdf);
+
+		invoice = invoiceService.save(invoice);// saving Table Invoice and ChildTables (InvoiceItem and InvoicePdf)
+
+		return "redirect:/asset/invoiceEntry";
 	}
 
 }

@@ -1,12 +1,18 @@
 package com.vikas.invoice.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import com.vikas.invoice.entity.enums.InvoiceStatus;
 
@@ -15,33 +21,40 @@ public class Invoice {
 
 	@Column
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
 	@Column(nullable = false, unique = true)
 	private String invoiceNumber;
 
 	@Column(nullable = false)
-	private Date creationDate;
-	
+	private LocalDateTime creationDate;
+
 	@Column
 	private int type;
-	
+
 	@ManyToOne
-	@JoinColumn(name = "seller_id", referencedColumnName = "id")
+	@JoinColumn(name = "seller_id")
 	private Seller seller;
-	
+
 	@ManyToOne
-	@JoinColumn(name = "buyer_id", referencedColumnName = "id")
+	@JoinColumn(name = "buyer_id")
 	private Buyer buyer;
-	
+
 	@Column
 	private int statusCode;
-	
+
 	@Column
 	private int totalQuantity;
-	
+
 	@Column
 	private double totalPrice;
+
+	@OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL)
+	private List<InvoiceItem> invoiceItems;
+
+	@OneToOne(mappedBy = "invoice", cascade = CascadeType.ALL)
+	private InvoicePdf invoicePdf;
 
 	public Invoice() {
 	}
@@ -62,11 +75,11 @@ public class Invoice {
 		this.invoiceNumber = invoiceNumber;
 	}
 
-	public Date getCreationDate() {
+	public LocalDateTime getCreationDate() {
 		return creationDate;
 	}
 
-	public void setCreationDate(Date creationDate) {
+	public void setCreationDate(LocalDateTime creationDate) {
 		this.creationDate = creationDate;
 	}
 
@@ -94,8 +107,8 @@ public class Invoice {
 		this.buyer = buyer;
 	}
 
-	public int getStatusCode() {
-		return statusCode;
+	public InvoiceStatus getStatusCode() {
+		return InvoiceStatus.getInvoioceStatus(statusCode);
 	}
 
 	public void setStatusCode(InvoiceStatus invoiceStatus) {
@@ -116,6 +129,22 @@ public class Invoice {
 
 	public void setTotalPrice(double totalPrice) {
 		this.totalPrice = totalPrice;
+	}
+
+	public List<InvoiceItem> getInvoiceItems() {
+		return invoiceItems;
+	}
+
+	public void setInvoiceItems(List<InvoiceItem> invoiceItems) {
+		this.invoiceItems = invoiceItems;
+	}
+
+	public InvoicePdf getInvoicePdf() {
+		return invoicePdf;
+	}
+
+	public void setInvoicePdf(InvoicePdf invoicePdf) {
+		this.invoicePdf = invoicePdf;
 	}
 
 	@Override

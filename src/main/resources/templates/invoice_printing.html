@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Asset - InvoiceEntry</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<div th:replace="header :: headerHead"></div>
+
+<style>
+/* Remove the navbar's default margin-bottom and rounded borders */
+.navbar {
+	margin-bottom: 0;
+	border-radius: 0;
+}
+
+#container {
+	margin: 10px;
+}
+
+.form-section-label {
+	font-weight: bold;
+}
+
+.form-section {
+	margin-top: 10px;
+}
+
+#searchForm {
+	margin: 10px;
+}
+
+#searchForm td {
+	padding: 5px;
+}
+
+#searchForm label {
+	margin-left: 20px;
+}
+
+.required:after {
+	content: " *";
+	color: red;
+}
+
+#invoicePrintingSearchDiv{
+	margin: auto;
+	margin-top: 30px;
+	padding: 10px;
+	width: 55%;
+	border: 1px solid black;
+	border-radius: 5px;
+}
+
+</style>
+
+<script>
+	$(document).ready(function() {
+		var date_input = $('input[name="startDate_search"], input[name="endDate_search"]');
+		var container = $('.bootstrap-iso form').length > 0 ? $('.bootstrap-iso form').parent() : "body";
+		var options = {
+			format : 'yyyy/mm/dd',
+			container : container,
+			todayHighlight : true,
+			autoclose : true,
+		};
+		date_input.datepicker(options);
+	})
+</script>
+
+</head>
+
+<body>
+
+	<div th:replace="header::pageHeader"></div>
+
+	<div id="invoicePrintingSearchDiv">
+
+		<form action="/asset/invoicePrintingSearch">
+
+			<table id="searchForm">
+				<tr>
+					<td><label>Invoice Number</label></td>
+					<td><input type="text" name="invoiceNumber_search" /></td>
+
+					<td><label>Seller</label></td>
+					<td><input type="text" name="sellerId_search" /></td>
+
+					<td><label>Buyer</label></td>
+					<td><input type="text" name="buyerId_search" /></td>
+
+				</tr>
+
+				<tr>
+					<td><label>Invoice Type</label></td>
+					<td><select name="invoiceType_search">
+							<option value="0">Select Invoice Type</option>
+							<option value="1">Asset Transfer</option>
+							<option value="2">Other</option>
+							<option value="3">Cross</option>
+							<option value="4">Export</option>
+							<option value="5">Inward Delivery Challan</option>
+							<option value="6">Inward Delivery Challan</option>
+					</select></td>
+
+					<td><label class="required">Start Date </label></td>
+					<td><input type="text" name="startDate_search" placeholder="MM/DD/YYYY" required /></td>
+
+					<td><label class="required">End Date</label></td>
+					<td><input type="text" name="endDate_search" placeholder="MM/DD/YYYY" required /></td>
+
+
+					<td align="right"><input width="80px" type="submit" value="Search" class="btn btn-dark"></td>
+				</tr>
+
+			</table>
+
+		</form>
+
+	</div>
+
+	<div id="container">
+
+		<table class="table table-striped table-bordered" id="itemtable">
+			<thead class="thead-dark">
+				<tr>
+					<th>Sr No.</th>
+					<th>Invoice Number</th>
+					<th>Status</th>
+					<th>Date</th>
+					<th>Seller</th>
+					<th>Buyer</th>
+					<th>Total Amount</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="invoice: ${invoices}">
+					<td th:text="${invoiceStat.index+1}"></td>
+					<td th:text="${invoice.invoiceNumber}"></td>
+					<td th:text="${invoice.statusCode}"></td>
+					<td th:text="${invoice.creationDate}"></td>
+					<td th:text="${invoice.seller.address.name}"></td>
+					<td th:text="${invoice.buyer.address.name}"></td>
+					<td th:text="${invoice.totalPrice}"></td>
+					<td>
+						<button type="button" class="btn btn-default btn-sm">
+							<span class="glyphicon glyphicon-pencil"></span> Edit
+						</button>
+						<button type="button" th:onclick="'window.location.href=\'/asset/invoiceDownload?id=' + ${invoice.id} + '\''" class="btn btn-default btn-sm">
+							<span class="glyphicon glyphicon-download-alt"></span> Download
+						</button>
+						<button type="button" th:onclick="'window.location.href=\'/asset/invoiceCancel?id=' + ${invoice.id} + '\''" class="btn btn-default btn-sm">
+							<span class="glyphicon glyphicon-remove"></span> Cancel
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+	</div>
+</body>
+</html>

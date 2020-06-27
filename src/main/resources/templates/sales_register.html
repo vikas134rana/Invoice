@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Asset - InvoiceEntry</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<div th:replace="header :: headerHead"></div>
+
+<style>
+
+#container {
+	margin: 10px;
+}
+
+.form-section-label {
+	font-weight: bold;
+}
+
+.form-section {
+	margin-top: 10px;
+}
+
+#searchForm {
+	margin: 10px;
+}
+
+#searchForm td {
+	padding: 5px;
+}
+
+#searchForm label {
+	margin-left: 20px;
+}
+
+.required:after {
+	content: " *";
+	color: red;
+}
+
+#salesRegisterDiv td {
+	padding: 5px;
+}
+
+#salesRegisterDiv {
+	margin: auto;
+	margin-top: 30px;
+	padding: 20px;
+	width: 20%;
+	border: 1px solid black;
+	border-radius: 5px;
+}
+</style>
+
+<script>
+	$(document).ready(function() {
+		var date_input = $('input[name="startDate_search"], input[name="endDate_search"]');
+		var container = $('.bootstrap-iso form').length > 0 ? $('.bootstrap-iso form').parent() : "body";
+		var options = {
+			format : 'yyyy/mm/dd',
+			container : container,
+			todayHighlight : true,
+			autoclose : true,
+		};
+		date_input.datepicker(options);
+	});
+
+	function setFormat(format) {
+		document.getElementById('format_search').value = format;
+	}
+
+	function formSubmit() {
+		document.getElementById('salesRegisterForm').submit();
+	}
+</script>
+
+</head>
+
+<body>
+
+	<div th:replace="header::pageHeader"></div>
+
+	<div align="center" id="salesRegisterDiv">
+		<form action="/asset/salesRegisterGenerate" id="salesRegisterForm">
+
+			<table>
+				<tr>
+					<td><label>Invoice Number</label></td>
+					<td><input type="text" name="invoiceNumber_search" /></td>
+				</tr>
+
+				<tr>
+					<td><label>Seller</label></td>
+					<td><input type="text" name="sellerId_search" /></td>
+				</tr>
+
+				<tr>
+					<td><label>Buyer</label></td>
+					<td><input type="text" name="buyerId_search" /></td>
+				</tr>
+
+				<tr>
+					<td><label>Invoice Type</label></td>
+					<td><select name="invoiceType_search">
+							<option value="0">Select Invoice Type</option>
+							<option value="1">Asset Transfer</option>
+							<option value="2">Other</option>
+							<option value="3">Cross</option>
+							<option value="4">Export</option>
+							<option value="5">Inward Delivery Challan</option>
+							<option value="6">Inward Delivery Challan</option>
+					</select></td>
+				</tr>
+
+				<tr>
+					<td><label class="required">Start Date </label></td>
+					<td><input type="text" name="startDate_search" placeholder="MM/DD/YYYY" required /></td>
+				</tr>
+
+				<tr>
+					<td><label class="required">End Date</label></td>
+					<td><input type="text" name="endDate_search" placeholder="MM/DD/YYYY" required /></td>
+				</tr>
+
+				<tr>
+					<td><input type="hidden" name="format_search" id="format_search" /></td>
+				</tr>
+
+				<tr>
+					<td align="right"><input type="button" name value="Generate Excel" class="btn btn-dark" onclick="setFormat('EXCEL'); formSubmit();"></td>
+					<td align="right"><input type="button" value="Generate PDF" class="btn btn-dark" onclick="setFormat('PDF'); formSubmit();"></td>
+				</tr>
+
+			</table>
+
+		</form>
+	</div>
+
+
+</body>
+</html>

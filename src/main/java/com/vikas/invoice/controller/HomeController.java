@@ -1,9 +1,12 @@
 package com.vikas.invoice.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.vikas.invoice.entity.InvoiceItem;
 import com.vikas.invoice.service.AddressService;
 import com.vikas.invoice.service.BuyerService;
 import com.vikas.invoice.service.CategoryService;
@@ -84,6 +87,10 @@ public class HomeController {
 		System.out.println("===========================================================");
 		String invoiceNumber = generatedInvoiceNumberService.generateInvoiceNumber(invoiceService.getInvoiceById(3));
 		System.out.println("InvoiceNumber: " + invoiceNumber);
+		
+		System.out.println("===========================================================");
+		List<InvoiceItem> invoiceItems = invoiceService.getInvoiceById(13).getInvoiceItems();
+		System.out.println(invoiceItems);
 	}
 
 }
