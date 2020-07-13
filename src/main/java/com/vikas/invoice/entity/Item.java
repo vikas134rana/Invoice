@@ -1,5 +1,6 @@
 package com.vikas.invoice.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 @Entity
 public class Item {
@@ -24,11 +26,15 @@ public class Item {
 	private Category category;
 
 	@Column
-	private double price;
+	private String unit;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "item_price_id")
+	private ItemPrice itemPrice;
 
 	public Item() {
 	}
-	
+
 	public int getId() {
 		return id;
 	}
@@ -53,17 +59,25 @@ public class Item {
 		this.category = category;
 	}
 
-	public double getPrice() {
-		return price;
+	public String getUnit() {
+		return unit;
 	}
 
-	public void setPrice(double price) {
-		this.price = price;
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
+	public ItemPrice getItemPrice() {
+		return itemPrice;
+	}
+
+	public void setItemPrice(ItemPrice itemPrice) {
+		this.itemPrice = itemPrice;
 	}
 
 	@Override
 	public String toString() {
-		return "Item [id=" + id + ", name=" + name + ", category=" + category + ", price=" + price + "]";
+		return "Item [id=" + id + ", name=" + name + ", category=" + category + ", unit=" + unit + ", itemPrice=" + itemPrice + "]";
 	}
 
 }

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.vikas.invoice.entity.Invoice;
 import com.vikas.invoice.repository.InvoiceRepository;
-import com.vikas.invoice.util.Util;
 
 @Service
 public class InvoiceService {
@@ -40,18 +39,24 @@ public class InvoiceService {
 		return (List<Invoice>) invoiceRepository.findAll();
 	}
 
+	public List<Invoice> getInvoicesBetweenDate(LocalDate startDate, LocalDate endDate) {
+		return (List<Invoice>) invoiceRepository.getInvoicesBetweenDate(startDate.atStartOfDay(), endDate.atTime(23, 59, 59, 999999999));
+	}
+
 	public List<Invoice> searchInvoice(String invoiceNumber, Integer buyerId, Integer invoiceType, LocalDate startDate, LocalDate endDate) throws Exception {
 
 		if (startDate == null || endDate == null)
 			throw new Exception("Start Date and End Date is mandatory.");
 
-		List<Invoice> invoices = getAllInvoices().stream().filter(i -> {
-
-			LocalDate invoiceCreationDate = i.getCreationDate().toLocalDate();
+		List<Invoice> invoices = getInvoicesBetweenDate(startDate, endDate);
+		System.out.println("getInvoicesBetweenDate() Size: "+invoices.size() );
+		
+		invoices = invoices.stream().filter(i -> {
 
 			// ignore invoice where creation date is not in start and end date range
+			/*- LocalDate invoiceCreationDate = i.getCreationDate().toLocalDate(); 
 			if (!Util.isDateInRange(invoiceCreationDate, startDate, endDate))
-				return false;
+				return false; */
 
 			// ignore invoice where invoice type doesn't match
 			if (invoiceType != null && invoiceType != 0 && invoiceType != i.getType())

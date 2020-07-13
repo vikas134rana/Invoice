@@ -1,4 +1,4 @@
-package com.vikas.invoice.controller.asset;
+package com.vikas.invoice.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,8 +19,7 @@ import com.vikas.invoice.features.salesregister.SalesRegisterFormat;
 import com.vikas.invoice.service.InvoiceService;
 
 @Controller
-@RequestMapping("/asset")
-public class AssetDownloadSalesRegisterController {
+public class DownloadSalesRegisterController {
 
 	@Autowired
 	InvoiceService invoiceService;

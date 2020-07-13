@@ -15,6 +15,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import com.vikas.invoice.entity.enums.InvoiceStatus;
+import com.vikas.invoice.util.InvoiceUtils;
 
 @Entity
 public class Invoice {
@@ -89,6 +90,10 @@ public class Invoice {
 
 	public void setType(int type) {
 		this.type = type;
+	}
+	
+	public String getTypeValue() {
+		return InvoiceUtils.invoiceTypeValue(this.type);
 	}
 
 	public Seller getSeller() {

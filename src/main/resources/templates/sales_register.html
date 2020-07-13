@@ -1,22 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html >
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-<title>Asset - InvoiceEntry</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<title>Asset - SalesRegister</title>
 
 <div th:replace="header :: headerHead"></div>
 
 <style>
-
-#container {
-	margin: 10px;
-}
-
-.form-section-label {
-	font-weight: bold;
-}
 
 .form-section {
 	margin-top: 10px;
@@ -64,7 +53,19 @@
 			autoclose : true,
 		};
 		date_input.datepicker(options);
+		date_input.val(formatCurrentDate());
 	});
+
+	function formatCurrentDate() {
+		var d = new Date(), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+
+		if (month.length < 2)
+			month = '0' + month;
+		if (day.length < 2)
+			day = '0' + day;
+
+		return [ year, month, day ].join('/');
+	}
 
 	function setFormat(format) {
 		document.getElementById('format_search').value = format;
@@ -82,7 +83,7 @@
 	<div th:replace="header::pageHeader"></div>
 
 	<div align="center" id="salesRegisterDiv">
-		<form action="/asset/salesRegisterGenerate" id="salesRegisterForm">
+		<form action="/salesRegisterGenerate" id="salesRegisterForm">
 
 			<table>
 				<tr>
@@ -128,7 +129,7 @@
 				</tr>
 
 				<tr>
-					<td align="right"><input type="button" name value="Generate Excel" class="btn btn-dark" onclick="setFormat('EXCEL'); formSubmit();"></td>
+					<td align="right"><input type="button" value="Generate Excel" class="btn btn-dark" onclick="setFormat('EXCEL'); formSubmit();"></td>
 					<td align="right"><input type="button" value="Generate PDF" class="btn btn-dark" onclick="setFormat('PDF'); formSubmit();"></td>
 				</tr>
 

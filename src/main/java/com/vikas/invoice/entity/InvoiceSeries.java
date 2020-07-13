@@ -7,7 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class GeneratedInvoiceNumber {
+public class InvoiceSeries {
 
 	@Column
 	@Id
@@ -20,7 +20,7 @@ public class GeneratedInvoiceNumber {
 	@Column
 	private int count;
 
-	public GeneratedInvoiceNumber() {
+	public InvoiceSeries() {
 	}
 
 	public int getId() {

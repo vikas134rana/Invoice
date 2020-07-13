@@ -6,19 +6,19 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.vikas.invoice.entity.GeneratedInvoiceNumber;
+import com.vikas.invoice.entity.InvoiceSeries;
 import com.vikas.invoice.entity.Invoice;
 import com.vikas.invoice.entity.Seller;
-import com.vikas.invoice.repository.GeneratedInvoiceNumberRepository;
+import com.vikas.invoice.repository.InvoiceSeriesRepository;
 import com.vikas.invoice.util.InvoiceUtils;
 
 @Service
-public class GeneratedInvoiceNumberService {
+public class InvoiceSeriesService {
 
 	@Autowired
-	private GeneratedInvoiceNumberRepository generatedInvoiceNumberRepository;
+	private InvoiceSeriesRepository generatedInvoiceNumberRepository;
 
-	public void save(GeneratedInvoiceNumber generatedInvoiceNumber) {
+	public void save(InvoiceSeries generatedInvoiceNumber) {
 		generatedInvoiceNumberRepository.save(generatedInvoiceNumber);
 	}
 
@@ -26,16 +26,16 @@ public class GeneratedInvoiceNumberService {
 		generatedInvoiceNumberRepository.deleteById(id);
 	}
 
-	public GeneratedInvoiceNumber getGeneratedInvoiceNumberById(int id) {
-		Optional<GeneratedInvoiceNumber> generatedInvoiceNumberOpt = generatedInvoiceNumberRepository.findById(id);
+	public InvoiceSeries getGeneratedInvoiceNumberById(int id) {
+		Optional<InvoiceSeries> generatedInvoiceNumberOpt = generatedInvoiceNumberRepository.findById(id);
 		return generatedInvoiceNumberOpt.isPresent() ? generatedInvoiceNumberOpt.get() : null;
 	}
 
-	public List<GeneratedInvoiceNumber> getAllGeneratedInvoiceNumbers() {
-		return (List<GeneratedInvoiceNumber>) generatedInvoiceNumberRepository.findAll();
+	public List<InvoiceSeries> getAllGeneratedInvoiceNumbers() {
+		return (List<InvoiceSeries>) generatedInvoiceNumberRepository.findAll();
 	}
 
-	public GeneratedInvoiceNumber getGeneratedInvoiceNumberBySequence(String sequence) {
+	public InvoiceSeries getGeneratedInvoiceNumberBySequence(String sequence) {
 		return generatedInvoiceNumberRepository.findBySequence(sequence);
 	}
 
@@ -49,11 +49,12 @@ public class GeneratedInvoiceNumberService {
 	}
 
 	private String invoiceNumberCounting(String sequence) {
-		GeneratedInvoiceNumber generatedInvoiceNumber = getGeneratedInvoiceNumberBySequence(sequence);
+		
+		InvoiceSeries generatedInvoiceNumber = getGeneratedInvoiceNumberBySequence(sequence);
 
 		if (generatedInvoiceNumber == null) {
 			// add new GeneratedInvoiceNumber in table
-			generatedInvoiceNumber = new GeneratedInvoiceNumber();
+			generatedInvoiceNumber = new InvoiceSeries();
 			generatedInvoiceNumber.setSequence(sequence);
 			generatedInvoiceNumber.setCount(0);
 		}

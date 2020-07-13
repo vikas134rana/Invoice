@@ -1,4 +1,4 @@
-package com.vikas.invoice.controller.asset;
+package com.vikas.invoice.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -8,25 +8,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.vikas.invoice.entity.Invoice;
 import com.vikas.invoice.service.InvoiceService;
 
 @Controller
-@RequestMapping("/asset")
-public class AssetInvoicePrintingController {
+public class InvoicePrintingController {
 
 	@Autowired
 	InvoiceService invoiceService;
 
 	@GetMapping("/invoicePrinting")
-	public String invoicePrinting() {
+	public String invoicePrinting(Model model, @RequestParam(required = false, name = "successMsg") String successMsg) {
+
+		// It means it is a redirect call after Invoice is successfully created
+		if (successMsg != null) {
+			model.addAttribute("successMsg", successMsg);
+		}
+
 		return "invoice_printing";
 	}
-			
-	
+
 	/**
 	 * Invoice Printing with Custom Search.<br>
 	 * Custom Search - Search Combination of invoiceNumber, buyerId, invoiceType,
@@ -64,6 +67,32 @@ public class AssetInvoicePrintingController {
 
 		List<Invoice> invoices = invoiceService.searchInvoice(invoiceNumber, buyerId, invoiceType, startDate, endDate);
 		model.addAttribute("invoices", invoices);
+
+		return "invoice_printing";
+	}
+
+	@GetMapping("/modifyInvoiceForm")
+	public String modifyInvoice(Model model, @RequestParam("id") int id) {
+
+		Invoice invoiceToModify = invoiceService.getInvoiceById(id);
+		model.addAttribute("modify", true);
+		model.addAttribute("invoiceToModify", invoiceToModify);
+
+		return "invoice_printing";
+	}
+	
+	@GetMapping("/modifyInvoice")
+	public String modifyInvoice(Model model,@RequestParam("id") int id,@RequestParam("param1") String param1, @RequestParam("param2") String param2) {
+
+		System.out.println("=== Modify Invoice ===");
+		
+		System.out.println("id: "+id);
+		System.out.println("param1: "+param1);
+		System.out.println("param2: "+param2);
+		
+		Invoice invoice = invoiceService.getInvoiceById(id);
+		
+		model.addAttribute("invoiceModifySuccessMsg", "Invoice "+invoice.getInvoiceNumber()+" modified successfully.");
 
 		return "invoice_printing";
 	}

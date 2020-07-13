@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-<title>Asset - InvoiceEntry</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset - InvoicePrinting</title>
 
 <div th:replace="header :: headerHead"></div>
 
@@ -43,15 +41,14 @@
 	color: red;
 }
 
-#invoicePrintingSearchDiv{
+#invoicePrintingSearchDiv {
 	margin: auto;
 	margin-top: 30px;
 	padding: 10px;
-	width: 55%;
+	width: 60%;
 	border: 1px solid black;
 	border-radius: 5px;
 }
-
 </style>
 
 <script>
@@ -65,7 +62,29 @@
 			autoclose : true,
 		};
 		date_input.datepicker(options);
-	})
+		date_input.val(formatCurrentDate());
+	});
+
+	function formatCurrentDate() {
+		var d = new Date(), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+
+		if (month.length < 2)
+			month = '0' + month;
+		if (day.length < 2)
+			day = '0' + day;
+
+		return [ year, month, day ].join('/');
+	}
+</script>
+
+<script th:inline="javascript">
+
+    var flag = [[${modify}]]; //Your Thymleaf variable
+    window.onload = function() {   
+    	if(!flag)
+            return; // Exit if the variable is false
+        $('#modifyModal').modal('show');
+    };
 </script>
 
 </head>
@@ -74,9 +93,12 @@
 
 	<div th:replace="header::pageHeader"></div>
 
+	<!-- Invoice successfully modified msg -->
+	<div th:if="${invoiceModifySuccessMsg != null}" th:text="${invoiceModifySuccessMsg}" class="alert alert-success"></div>
+
 	<div id="invoicePrintingSearchDiv">
 
-		<form action="/asset/invoicePrintingSearch">
+		<form action="/invoicePrintingSearch">
 
 			<table id="searchForm">
 				<tr>
@@ -126,6 +148,7 @@
 				<tr>
 					<th>Sr No.</th>
 					<th>Invoice Number</th>
+					<th>Type</th>
 					<th>Status</th>
 					<th>Date</th>
 					<th>Seller</th>
@@ -138,20 +161,21 @@
 				<tr th:each="invoice: ${invoices}">
 					<td th:text="${invoiceStat.index+1}"></td>
 					<td th:text="${invoice.invoiceNumber}"></td>
+					<td th:text="${invoice.typeValue}"></td>
 					<td th:text="${invoice.statusCode}"></td>
 					<td th:text="${invoice.creationDate}"></td>
 					<td th:text="${invoice.seller.address.name}"></td>
 					<td th:text="${invoice.buyer.address.name}"></td>
 					<td th:text="${invoice.totalPrice}"></td>
 					<td>
-						<button type="button" class="btn btn-default btn-sm">
-							<span class="glyphicon glyphicon-pencil"></span> Edit
+						<button type="button" th:onclick="'window.location.href=\'/modifyInvoiceForm?id=' + ${invoice.id} + '\''" class="btn btn-outline-dark">
+							<span class="fa fa-edit"></span> Modify
 						</button>
-						<button type="button" th:onclick="'window.location.href=\'/asset/invoiceDownload?id=' + ${invoice.id} + '\''" class="btn btn-default btn-sm">
-							<span class="glyphicon glyphicon-download-alt"></span> Download
+						<button type="button" th:onclick="'window.location.href=\'/invoiceDownload?id=' + ${invoice.id} + '\''" class="btn btn-outline-dark">
+							<span class="fa fa-download"></span> Download
 						</button>
-						<button type="button" th:onclick="'window.location.href=\'/asset/invoiceCancel?id=' + ${invoice.id} + '\''" class="btn btn-default btn-sm">
-							<span class="glyphicon glyphicon-remove"></span> Cancel
+						<button type="button" th:onclick="'window.location.href=\'/invoiceCancel?id=' + ${invoice.id} + '\''" class="btn btn-outline-dark">
+							<span class="fa fa-times-circle"></span> Cancel
 						</button>
 					</td>
 				</tr>
@@ -159,5 +183,41 @@
 		</table>
 
 	</div>
+
+	<!-- Modify Invoice -->
+	<div th:if="${invoiceToModify!=null}" class="modal fade" tabindex="-1" id="modifyModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" th:text="${'Modify Invoice '+ invoiceToModify.invoiceNumber}"></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<form action="/asset/modifyInvoice">
+					<div class="modal-body">
+						<p></p>
+						<table>
+							<tr>
+								<td><label>Invoice Number</label></td>
+								<td><input type="text" name="param1" th:value="${invoiceToModify.invoiceNumber}">
+								<input type="hidden" name="id" th:value="${invoiceToModify.id}"></td>
+							</tr>
+							<tr>
+								<td><label>Status</label></td>
+								<td><input type="text" name="param2" th:value="${invoiceToModify.statusCode}"></td>
+							</tr>
+						</table>
+
+					</div>
+					<div class="modal-footer">
+						<input type="button" class="btn btn-secondary" data-dismiss="modal" value="Close" /> <input type="submit" class="btn btn-primary" value="Save" />
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+
 </body>
 </html>

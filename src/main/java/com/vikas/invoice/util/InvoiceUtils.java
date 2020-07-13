@@ -1,18 +1,9 @@
 package com.vikas.invoice.util;
 
-import com.vikas.invoice.entity.Invoice;
-import com.vikas.invoice.features.invoicepdf.InvoiceBuilder;
-import com.vikas.invoice.features.invoicepdf.pdf.AssetTransferInvoicePDF;
-import com.vikas.invoice.features.invoicepdf.pdf.CrossInvoicePdf;
-import com.vikas.invoice.features.invoicepdf.pdf.ExportInvoicePdf;
-import com.vikas.invoice.features.invoicepdf.pdf.InwardDeliveryChallanInvoicePdf;
-import com.vikas.invoice.features.invoicepdf.pdf.OtherInvoicePDF;
-import com.vikas.invoice.features.invoicepdf.pdf.OutwardDeliveryChallanInvoicePdf;
-
 public class InvoiceUtils {
 
 	public static char invoiceTypeChar(int invoiceType) {
-		char type = 'A';
+		char type;
 
 		switch (invoiceType) {
 		case 1:
@@ -25,7 +16,7 @@ public class InvoiceUtils {
 			type = 'C';
 			break;
 		case 4:
-			type = 'E';
+			type = 'X';
 			break;
 		case 5:
 			type = 'N';
@@ -33,6 +24,12 @@ public class InvoiceUtils {
 		case 6:
 			type = 'U';
 			break;
+		case 7:
+			type = 'G';
+			break;
+		case 8:
+			type = 'E';
+			break;	
 		default:
 			throw new IllegalArgumentException("Invoice Type value " + invoiceType + " is invalid");
 		}
@@ -62,6 +59,12 @@ public class InvoiceUtils {
 		case 6:
 			type = "Outward Delivery Challan";
 			break;
+		case 7:
+			type = "General Waste";
+			break;	
+		case 8:
+			type = "E-Waste";
+			break;	
 		default:
 			throw new IllegalArgumentException("Invoice Type value " + invoiceType + " is invalid");
 		}
@@ -69,36 +72,5 @@ public class InvoiceUtils {
 		return type;
 	}
 	
-	public static InvoiceBuilder getInvoiceBuilder(Invoice invoice) {
-		
-		
-		InvoiceBuilder invoiceBuilder = null;
-		int invoiceType = invoice.getType();
-		
-		
-		switch (invoiceType) {
-		case 1:
-			invoiceBuilder = new AssetTransferInvoicePDF(invoice);
-			break;
-		case 2:
-			invoiceBuilder = new OtherInvoicePDF(invoice);
-			break;
-		case 3:
-			invoiceBuilder = new CrossInvoicePdf(invoice);
-			break;
-		case 4:
-			invoiceBuilder = new ExportInvoicePdf(invoice);
-			break;
-		case 5:
-			invoiceBuilder = new InwardDeliveryChallanInvoicePdf(invoice);
-			break;
-		case 6:
-			invoiceBuilder = new OutwardDeliveryChallanInvoicePdf(invoice);
-			break;	
-
-		default:
-			throw new IllegalArgumentException("Invoice Type value " + invoiceType + " is invalid");
-		}
-		return invoiceBuilder;
-	}
+	
 }

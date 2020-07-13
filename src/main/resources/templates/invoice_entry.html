@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
 <title>Asset - InvoiceEntry</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<div th:replace="header :: headerHead"></div>
+<div th:replace="header :: headerHead"></div>
 
 <style>
 #container {
@@ -29,40 +27,64 @@
 }
 </style>
 
-<script type="text/javascript">
-	/* $(document).ready(function () {
-	 $('.nav li a').click(function(e) {
-
-	 $('.nav li.active').removeClass('active');
-
-	 var $parent = $(this).parent();
-	 $parent.addClass('active');
-	 e.preventDefault();
-	 });
-	 });
-	 */
-</script>
-
 </head>
 <body>
 
 
 	<div th:replace="header::pageHeader"></div>
 
+	<!-- Message - Invoice successfully created -->
+	<div th:if="${successMsg != null}" th:text="${successMsg}" class="alert alert-success"></div>
+
 	<div id="container">
 
-		<form action="/asset/saveInvoiceEntry">
+		<form id="invoiceEntryForm" action="/saveInvoiceEntry" onsubmit="validateForm()">
 
 			<div id="service_type" class="form-section">
 				<div class="form-section-label">Service Type</div>
 
-				<label class="radio-inline"> <input value="1" type="radio" name="serviceType">Asset Transfer
-				</label> <label class="radio-inline"> <input value="2" type="radio" name="serviceType">Other
-				</label> <label class="radio-inline"> <input value="3" type="radio" name="serviceType">Cross
-				</label> <label class="radio-inline"> <input value="4" type="radio" name="serviceType">Export
-				</label> <label class="radio-inline"> <input value="5" type="radio" name="serviceType">Inward Delivery Challan
-				</label> <label class="radio-inline"> <input value="6" type="radio" name="serviceType">Outward Delivery Challan
-				</label>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="1" type="radio" class="form-check-input" name="serviceType">Asset Transfer
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="2" type="radio" class="form-check-input" name="serviceType">Other
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="3" type="radio" class="form-check-input" name="serviceType">Cross
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="4" type="radio" class="form-check-input" name="serviceType">Export
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="5" type="radio" class="form-check-input" name="serviceType">Inward Delivery
+						Challan
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="6" type="radio" class="form-check-input" name="serviceType">Outward Delivery
+						Challan
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="7" type="radio" class="form-check-input" name="serviceType">General Waste
+					</label>
+				</div>
+				<div class="form-check-inline">
+					<label class="form-check-label"> <input value="8" type="radio" class="form-check-input" name="serviceType">E-Waste
+					</label>
+				</div>
+
+				<!-- <label class="radio-inline"> <input value="1" type="radio" name="serviceType"> Asset Transfer 
+				</label> <label class="radio-inline"> <input value="2" type="radio" name="serviceType"> Other 
+				</label> <label class="radio-inline"> <input value="3" type="radio" name="serviceType"> Cross 
+				</label> <label class="radio-inline"> <input value="4" type="radio" name="serviceType"> Export 
+				</label> <label class="radio-inline"> <input value="5" type="radio" name="serviceType"> Inward Delivery Challan 
+				</label> <label class="radio-inline"> <input value="6" type="radio" name="serviceType"> Outward Delivery Challan 
+				</label> -->
 			</div>
 
 			<table id="sellerTable">
@@ -73,6 +95,7 @@
 				<tr>
 					<td>Seller</td>
 					<td><select id="sellerId" name="sellerId">
+							<option value="0">Select Seller</option>
 							<option th:each="seller : ${sellers}" th:value="${seller.id}" th:utext="${seller.address.name}" />
 					</select></td>
 				</tr>
@@ -86,6 +109,7 @@
 				<tr>
 					<td>Buyer</td>
 					<td><select id="buyerId" name="buyerId">
+							<option value="0">Select Buyer</option>
 							<option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:utext="${buyer.address.name}" />
 					</select></td>
 				</tr>
@@ -109,9 +133,10 @@
 						<td th:text="${itemStat.index+1}"></td>
 						<td th:text="${item.name}"></td>
 						<td th:text="${item.category.name}"></td>
-						<td th:text="${item.price}"></td>
-						<td><input type="text" name="quantity"><input type="hidden" th:value="${item.id}" name="itemId"></td>
-						<td><input type="text" name="sumPrice" readonly></td>
+						<td name="price" th:text="${item.itemPrice.price}"></td>
+						<td><input type="number" name="quantity" min="1" onchange="updateSumPrice(this)"><input type="hidden" th:value="${item.id}"
+							name="itemId"></td>
+						<td><input type="text" name="sumPrice" style="border: 0" readonly></td>
 					</tr>
 				</tbody>
 			</table>
@@ -127,6 +152,51 @@
 		</form>
 
 	</div>
+
+	<script type="text/javascript">
+		/* function showPopup(heading, msg) {
+			document.getElementById('popupModalLabel').textContent = heading;
+			document.getElementById('popupModalBody').textContent = msg;
+			document.getElementById('modalTrigger').click();
+			console.log(msg);
+		} */
+
+		// Form Validation
+		$("#invoiceEntryForm").submit(function() {
+
+			// InvoiceType Radio
+			if (!$("input[name='serviceType']:checked").val()) {
+				alert('Select ServiceType');
+				return false;
+			}
+
+			// Seller Dropdown
+			if ($('#sellerId :selected').index() == 0) {
+				alert('Select Seller');
+				return false;
+			}
+
+			// Buyer Dropdown
+			if ($('#buyerId :selected').index() == 0) {
+				alert('Select Buyer');
+				return false;
+			}
+
+			// Quantity
+			var anyQuantity = false;
+			$('[name="quantity"]').each(function(i) {
+				if (this.value != '')
+					anyQuantity = true
+				return false;
+			});
+			if (anyQuantity == false) {
+				alert('Select atleast a single item');
+				return false;
+			}
+
+		});
+	</script>
+
 
 </body>
 </html>

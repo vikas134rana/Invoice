@@ -279,7 +279,7 @@ public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 			itemTableData.addCell(new Paragraph("" + (i + 1))); // SR NO.
 			itemTableData.addCell(new Paragraph(invoiceItem.getItem().getName())); // Item
 			itemTableData.addCell(new Paragraph(item.getCategory().getName())); // Category
-			itemTableData.addCell(new Paragraph("" + item.getPrice())); // Price
+			itemTableData.addCell(new Paragraph("" + item.getItemPrice().getPrice())); // Price
 			itemTableData.addCell(new Paragraph("" + invoiceItem.getQuantity())); // Quantity
 			itemTableData.addCell(new Cell().add(new Paragraph("" + invoiceItem.getTotalPrice())).setTextAlignment(TextAlignment.RIGHT)); // Sum Price
 			itemTableData.addStyle(TIMES_N_9());

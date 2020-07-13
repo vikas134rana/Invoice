@@ -1,4 +1,4 @@
-package com.vikas.invoice.controller.asset;
+package com.vikas.invoice.controller;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -15,8 +15,7 @@ import com.vikas.invoice.features.salesregister.SalesRegisterFormat;
 import com.vikas.invoice.service.InvoiceService;
 
 @Controller
-@RequestMapping("/asset")
-public class AssetSalesRegisterController {
+public class SalesRegisterController {
 
 	@Autowired
 	InvoiceService invoiceService;
@@ -51,7 +50,7 @@ public class AssetSalesRegisterController {
 		String ids = invoiceService.searchInvoice(invoiceNumber, buyerId, invoiceType, startDate, endDate).stream().map(i -> String.valueOf(i.getId()))
 				.collect(Collectors.joining(","));
 
-		return "redirect:/asset/downloadSalesRegister?" + "format=" + format + "&id=" + ids;
+		return "redirect:/downloadSalesRegister?" + "format=" + format + "&id=" + ids;
 	}
 
 }

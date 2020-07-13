@@ -1,4 +1,4 @@
-package com.vikas.invoice.controller.asset;
+package com.vikas.invoice.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.vikas.invoice.entity.Buyer;
@@ -23,18 +22,17 @@ import com.vikas.invoice.entity.Item;
 import com.vikas.invoice.entity.Seller;
 import com.vikas.invoice.entity.enums.InvoiceStatus;
 import com.vikas.invoice.features.invoicepdf.InvoiceBuilder;
+import com.vikas.invoice.features.invoicepdf.InvoiceBuilderFactory;
 import com.vikas.invoice.service.BuyerService;
-import com.vikas.invoice.service.GeneratedInvoiceNumberService;
 import com.vikas.invoice.service.InvoiceItemService;
 import com.vikas.invoice.service.InvoicePdfService;
+import com.vikas.invoice.service.InvoiceSeriesService;
 import com.vikas.invoice.service.InvoiceService;
 import com.vikas.invoice.service.ItemService;
 import com.vikas.invoice.service.SellerService;
-import com.vikas.invoice.util.InvoiceUtils;
 
 @Controller
-@RequestMapping("/asset")
-public class AssetInvoiceEntryController {
+public class InvoiceEntryController {
 
 	@Autowired
 	ItemService itemService;
@@ -52,13 +50,13 @@ public class AssetInvoiceEntryController {
 	InvoiceItemService invoiceItemService;
 
 	@Autowired
-	GeneratedInvoiceNumberService generatedInvoiceNumberService;
+	InvoiceSeriesService generatedInvoiceNumberService;
 
 	@Autowired
 	InvoicePdfService invoicePdfService;
 
 	@GetMapping("/invoiceEntry")
-	public String invoiceEntry(Model model) {
+	public String invoiceEntry(Model model, @RequestParam(required = false, name = "successMsg") String successMsg) {
 
 		List<Seller> sellers = sellerService.getAllSellers();
 		List<Buyer> buyers = buyerService.getAllBuyers();
@@ -67,6 +65,11 @@ public class AssetInvoiceEntryController {
 		model.addAttribute("sellers", sellers);
 		model.addAttribute("buyers", buyers);
 		model.addAttribute("items", items);
+
+		// It means it is a redirect call after Invoice is successfully created
+		if (successMsg != null) {
+			model.addAttribute("successMsg", successMsg);
+		}
 
 		return "invoice_entry";
 	}
@@ -105,7 +108,7 @@ public class AssetInvoiceEntryController {
 			InvoiceItem invoiceItem = new InvoiceItem();
 			invoiceItem.setItem(item);
 			invoiceItem.setQuantity(quantity);
-			double totalPrice = item.getPrice() * quantity;
+			double totalPrice = item.getItemPrice().getPrice() * quantity;
 			invoiceItem.setTotalPrice(totalPrice);
 			invoiceItem.setInvoice(invoice);
 
@@ -130,7 +133,7 @@ public class AssetInvoiceEntryController {
 
 		invoice.setInvoiceItems(invoiceItems);
 
-		InvoiceBuilder invoiceBuilder = InvoiceUtils.getInvoiceBuilder(invoice);
+		InvoiceBuilder invoiceBuilder = InvoiceBuilderFactory.getInvoiceBuilder(invoice);
 		byte[] invoiceDataStream = invoiceBuilder.createInvoicePdf();
 
 		// create invoicePdf Object
@@ -142,7 +145,9 @@ public class AssetInvoiceEntryController {
 
 		invoice = invoiceService.save(invoice);// saving Table Invoice and ChildTables (InvoiceItem and InvoicePdf)
 
-		return "redirect:/asset/invoiceEntry";
+		String successMsg = "Invoice " + invoiceNumberStr + " is created successfully";
+
+		return "redirect:/invoiceEntry?successMsg=" + successMsg;
 	}
 
 }
