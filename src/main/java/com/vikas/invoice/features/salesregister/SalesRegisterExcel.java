@@ -58,7 +58,7 @@ public class SalesRegisterExcel implements SalesRegister {
 			row.createCell(++col).setCellValue(invoice.getSeller().getAddress().getName());
 			row.createCell(++col).setCellValue(invoice.getBuyer().getAddress().getName());
 			row.createCell(++col).setCellValue(invoice.getTotalQuantity());
-			row.createCell(++col).setCellValue(invoice.getTotalPrice());
+			row.createCell(++col).setCellValue(invoice.getTotalAmount());
 		}
 
 		setHeaderStyle();

@@ -30,6 +30,7 @@ public class DownloadInvoiceController {
 		Invoice invoice = invoiceService.getInvoiceById(id);
 		InvoicePdf invoicePdf = invoice.getInvoicePdf();
 		InputStream invoicePdfInputStream = new ByteArrayInputStream(invoicePdf.getPdfData());
+//		InputStream invoicePdfInputStream = new ByteArrayInputStream(InvoiceBuilderFactory.getInvoiceBuilder(invoice).createInvoicePdf());
 
 		String fileName = "Invoice_" + invoice.getInvoiceNumber() + "_" + System.currentTimeMillis() + ".pdf";
 

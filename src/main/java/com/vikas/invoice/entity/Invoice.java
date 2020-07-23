@@ -49,7 +49,31 @@ public class Invoice {
 	private int totalQuantity;
 
 	@Column
-	private double totalPrice;
+	private double totalNetAmount;
+
+	@Column
+	private double totalCgstAmount;
+
+	@Column
+	private double totalSgstAmount;
+
+	@Column
+	private double totalIgstAmount;
+
+	@Column
+	private double totalAmount;
+
+	@Column
+	private String arDocNumber;
+
+	@Column
+	private String apDocNumber;
+
+	@Column
+	private String vehicleNumber;
+
+	@Column
+	private String transporterName;
 
 	@OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL)
 	private List<InvoiceItem> invoiceItems;
@@ -91,7 +115,7 @@ public class Invoice {
 	public void setType(int type) {
 		this.type = type;
 	}
-	
+
 	public String getTypeValue() {
 		return InvoiceUtils.invoiceTypeValue(this.type);
 	}
@@ -128,14 +152,6 @@ public class Invoice {
 		this.totalQuantity = totalQuantity;
 	}
 
-	public double getTotalPrice() {
-		return totalPrice;
-	}
-
-	public void setTotalPrice(double totalPrice) {
-		this.totalPrice = totalPrice;
-	}
-
 	public List<InvoiceItem> getInvoiceItems() {
 		return invoiceItems;
 	}
@@ -152,10 +168,85 @@ public class Invoice {
 		this.invoicePdf = invoicePdf;
 	}
 
+	public double getTotalNetAmount() {
+		return totalNetAmount;
+	}
+
+	public void setTotalNetAmount(double totalNetAmount) {
+		this.totalNetAmount = totalNetAmount;
+	}
+
+	public double getTotalCgstAmount() {
+		return totalCgstAmount;
+	}
+
+	public void setTotalCgstAmount(double totalCgstAmount) {
+		this.totalCgstAmount = totalCgstAmount;
+	}
+
+	public double getTotalSgstAmount() {
+		return totalSgstAmount;
+	}
+
+	public void setTotalSgstAmount(double totalSgstAmount) {
+		this.totalSgstAmount = totalSgstAmount;
+	}
+
+	public double getTotalIgstAmount() {
+		return totalIgstAmount;
+	}
+
+	public void setTotalIgstAmount(double totalIgstAmount) {
+		this.totalIgstAmount = totalIgstAmount;
+	}
+
+	public double getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(double totalAmount) {
+		this.totalAmount = totalAmount;
+	}
+
+	public String getArDocNumber() {
+		return arDocNumber;
+	}
+
+	public void setArDocNumber(String arDocNumber) {
+		this.arDocNumber = arDocNumber;
+	}
+
+	public String getApDocNumber() {
+		return apDocNumber;
+	}
+
+	public void setApDocNumber(String apDocNumber) {
+		this.apDocNumber = apDocNumber;
+	}
+
+	public String getVehicleNumber() {
+		return vehicleNumber;
+	}
+
+	public void setVehicleNumber(String vehicleNumber) {
+		this.vehicleNumber = vehicleNumber;
+	}
+
+	public String getTransporterName() {
+		return transporterName;
+	}
+
+	public void setTransporterName(String transporterName) {
+		this.transporterName = transporterName;
+	}
+
 	@Override
 	public String toString() {
 		return "Invoice [id=" + id + ", invoiceNumber=" + invoiceNumber + ", creationDate=" + creationDate + ", type=" + type + ", seller=" + seller
-				+ ", buyer=" + buyer + ", statusCode=" + statusCode + ", totalQuantity=" + totalQuantity + ", totalPrice=" + totalPrice + "]";
+				+ ", buyer=" + buyer + ", statusCode=" + statusCode + ", totalQuantity=" + totalQuantity + ", totalNetAmount=" + totalNetAmount
+				+ ", totalCgstAmount=" + totalCgstAmount + ", totalSgstAmount=" + totalSgstAmount + ", totalIgstAmount=" + totalIgstAmount + ", totalAmount="
+				+ totalAmount + ", arDocNumber=" + arDocNumber + ", apDocNumber=" + apDocNumber + ", vehicleNumber=" + vehicleNumber + ", transporterName="
+				+ transporterName + ", invoiceItems=" + invoiceItems + ", invoicePdf=" + invoicePdf + "]";
 	}
 
 }

@@ -43,14 +43,15 @@ public class InvoiceService {
 		return (List<Invoice>) invoiceRepository.getInvoicesBetweenDate(startDate.atStartOfDay(), endDate.atTime(23, 59, 59, 999999999));
 	}
 
-	public List<Invoice> searchInvoice(String invoiceNumber, Integer buyerId, Integer invoiceType, LocalDate startDate, LocalDate endDate) throws Exception {
+	public List<Invoice> searchInvoice(String invoiceNumber, Integer sellerId, Integer buyerId, Integer invoiceType, LocalDate startDate, LocalDate endDate)
+			throws Exception {
 
 		if (startDate == null || endDate == null)
 			throw new Exception("Start Date and End Date is mandatory.");
 
 		List<Invoice> invoices = getInvoicesBetweenDate(startDate, endDate);
-		System.out.println("getInvoicesBetweenDate() Size: "+invoices.size() );
-		
+		System.out.println("getInvoicesBetweenDate() Size: " + invoices.size());
+
 		invoices = invoices.stream().filter(i -> {
 
 			// ignore invoice where creation date is not in start and end date range
@@ -58,12 +59,16 @@ public class InvoiceService {
 			if (!Util.isDateInRange(invoiceCreationDate, startDate, endDate))
 				return false; */
 
+			// ignore invoice where sellerId doesn't match
+			if (sellerId != null && sellerId != 0 && i.getSeller().getId() != sellerId)
+				return false;
+
 			// ignore invoice where invoice type doesn't match
 			if (invoiceType != null && invoiceType != 0 && invoiceType != i.getType())
 				return false;
 
 			// ignore invoice where buyerId doesn't match
-			if (buyerId != null && i.getBuyer().getId() != buyerId)
+			if (buyerId != null && buyerId != 0 && i.getBuyer().getId() != buyerId)
 				return false;
 
 			// ignore invoice where invoiceNumber doesn't match

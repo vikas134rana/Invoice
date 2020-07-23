@@ -1,10 +1,13 @@
 package com.vikas.invoice.util;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class Util {
 
@@ -21,9 +24,9 @@ public class Util {
 	}
 
 	public static String convertToWordsIndianCurrency(Double amount) {
-		return convertToWordsIndianCurrency(""+amount);
+		return convertToWordsIndianCurrency("" + amount);
 	}
-	
+
 	private static String convertToWordsIndianCurrency(String num) {
 		BigDecimal bd = new BigDecimal(num);
 		long number = bd.longValue();
@@ -86,6 +89,20 @@ public class Util {
 				? " And Paise " + words.get(Integer.valueOf((int) (decimal - decimal % 10))) + " " + words.get(Integer.valueOf((int) (decimal % 10)))
 				: "";
 		return "Rupees " + Rupees + paise + " Only";
+	}
+
+	public static List<String> getItemUnits() {
+		return Arrays.asList("PCS", "GMS", "KGS", "NOS", "MTR", "BOX", "ROL", "SET", "PAC", "OTH");
+	}
+
+	public static double roundToTwoDigit(double value) {
+		DecimalFormat decimalFormat = new DecimalFormat("0.00");
+		return Double.parseDouble(decimalFormat.format(value));
+	}
+
+	public static String roundToTwoDigitStr(double value) {
+		DecimalFormat decimalFormat = new DecimalFormat("0.00");
+		return decimalFormat.format(value);
 	}
 
 }

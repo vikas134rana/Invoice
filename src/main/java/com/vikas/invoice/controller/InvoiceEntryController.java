@@ -9,10 +9,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.vikas.invoice.entity.Buyer;
 import com.vikas.invoice.entity.Invoice;
@@ -20,6 +24,7 @@ import com.vikas.invoice.entity.InvoiceItem;
 import com.vikas.invoice.entity.InvoicePdf;
 import com.vikas.invoice.entity.Item;
 import com.vikas.invoice.entity.Seller;
+import com.vikas.invoice.entity.TaxRate;
 import com.vikas.invoice.entity.enums.InvoiceStatus;
 import com.vikas.invoice.features.invoicepdf.InvoiceBuilder;
 import com.vikas.invoice.features.invoicepdf.InvoiceBuilderFactory;
@@ -28,14 +33,24 @@ import com.vikas.invoice.service.InvoiceItemService;
 import com.vikas.invoice.service.InvoicePdfService;
 import com.vikas.invoice.service.InvoiceSeriesService;
 import com.vikas.invoice.service.InvoiceService;
+import com.vikas.invoice.service.ItemPriceService;
 import com.vikas.invoice.service.ItemService;
 import com.vikas.invoice.service.SellerService;
+import com.vikas.invoice.service.TaxRateService;
+import com.vikas.invoice.util.InvoiceUtils;
+import com.vikas.invoice.util.Util;
 
 @Controller
 public class InvoiceEntryController {
 
 	@Autowired
 	ItemService itemService;
+
+	@Autowired
+	ItemPriceService itemPriceService;
+
+	@Autowired
+	TaxRateService taxRateService;
 
 	@Autowired
 	SellerService sellerService;
@@ -50,13 +65,14 @@ public class InvoiceEntryController {
 	InvoiceItemService invoiceItemService;
 
 	@Autowired
-	InvoiceSeriesService generatedInvoiceNumberService;
+	InvoiceSeriesService invoiceSeriesService;
 
 	@Autowired
 	InvoicePdfService invoicePdfService;
 
 	@GetMapping("/invoiceEntry")
-	public String invoiceEntry(Model model, @RequestParam(required = false, name = "successMsg") String successMsg) {
+	public String invoiceEntry(Model model, @RequestParam(required = false, name = "sellerId") Integer sellerId,
+			@RequestParam(required = false, name = "successMsg") String successMsg) {
 
 		List<Seller> sellers = sellerService.getAllSellers();
 		List<Buyer> buyers = buyerService.getAllBuyers();
@@ -70,6 +86,16 @@ public class InvoiceEntryController {
 		if (successMsg != null) {
 			model.addAttribute("successMsg", successMsg);
 		}
+
+		// Seller is selected
+		if (sellerId != null && sellerId != 0) {
+			Seller seller = sellerService.getSellerById(sellerId);
+			model.addAttribute("selectedSeller", seller);
+		}
+
+		model.addAttribute("itemPriceService", itemPriceService);
+		model.addAttribute("taxRateService", taxRateService);
+		model.addAttribute("buyerService", buyerService);
 
 		return "invoice_entry";
 	}
@@ -90,12 +116,21 @@ public class InvoiceEntryController {
 		Buyer buyer = buyerService.getBuyerById(buyerId);
 		Seller seller = sellerService.getSellerById(sellerId);
 
+		boolean isIgst = InvoiceUtils.isIGST(seller, buyer);
+
 		// updating itemId and its quantity in the map
 		Map<Integer, Integer> itemQuantityMap = new HashMap<>();
 		for (int i = 0; i < itemIds.length; i++) {
 			if (quantities[i] != null && quantities[i] > 0)
 				itemQuantityMap.put(itemIds[i], quantities[i]);
 		}
+
+		int totalQuantity = 0;
+		double totalNetAmount = 0;
+		double totalCgstAmount = 0;
+		double totalSgstAmount = 0;
+		double totalIgstAmount = 0;
+		double invoiceTotalAmount = 0;
 
 		// create invoiceItem Object (with the help of itemQuantityMap)
 		List<InvoiceItem> invoiceItems = new ArrayList<>();
@@ -108,11 +143,53 @@ public class InvoiceEntryController {
 			InvoiceItem invoiceItem = new InvoiceItem();
 			invoiceItem.setItem(item);
 			invoiceItem.setQuantity(quantity);
-			double totalPrice = item.getItemPrice().getPrice() * quantity;
-			invoiceItem.setTotalPrice(totalPrice);
+			invoiceItem.setUnit(item.getUnit());
+
+			double itemPrice = itemPriceService.getItemPrice(item, seller).getPrice();
+			invoiceItem.setUnitPrice(itemPrice);
+
+			double netAmount = Util.roundToTwoDigit(itemPrice * quantity);
+			invoiceItem.setNetAmount(netAmount);
+
+			TaxRate taxRate = taxRateService.getTaxRate(item.getCategory());
+			double cgstRate = taxRate.getCgstRate();
+			double sgstRate = taxRate.getSgstRate();
+
+			double taxAmount;
+
+			if (isIgst) {
+				double cgstAmount = Util.roundToTwoDigit(netAmount * cgstRate / 100);
+				double sgstAmount = Util.roundToTwoDigit(netAmount * sgstRate / 100);
+				double igstRate = cgstRate + sgstRate;
+				invoiceItem.setIgstRate(igstRate);
+				double igstAmount = Util.roundToTwoDigit(cgstAmount + sgstAmount);
+				invoiceItem.setIgstAmount(igstAmount);
+				taxAmount = igstAmount;
+				totalIgstAmount += igstAmount;
+
+			} else {
+				double cgstAmount = Util.roundToTwoDigit(netAmount * cgstRate / 100);
+				double sgstAmount = Util.roundToTwoDigit(netAmount * sgstRate / 100);
+				invoiceItem.setCgstRate(cgstRate);
+				invoiceItem.setSgstRate(sgstRate);
+				invoiceItem.setCgstAmount(cgstAmount);
+				invoiceItem.setSgstAmount(sgstAmount);
+				taxAmount = cgstAmount + sgstAmount;
+
+				totalCgstAmount += cgstAmount;
+				totalSgstAmount += sgstAmount;
+			}
+
+			double totalAmount = Util.roundToTwoDigit(netAmount + taxAmount);
+			invoiceItem.setTotalAmount(totalAmount);
+
 			invoiceItem.setInvoice(invoice);
 
 			invoiceItems.add(invoiceItem);
+
+			totalQuantity += quantity;
+			totalNetAmount += netAmount;
+			invoiceTotalAmount += totalAmount;
 		}
 
 		// create invoice Object
@@ -121,15 +198,15 @@ public class InvoiceEntryController {
 		invoice.setType(serviceType);
 		invoice.setCreationDate(LocalDateTime.now());
 		invoice.setStatusCode(InvoiceStatus.ACTIVE);
-
-		int totalQuantity = invoiceItems.stream().map(i -> i.getQuantity()).reduce(0, Integer::sum);
 		invoice.setTotalQuantity(totalQuantity);
+		invoice.setTotalNetAmount(Util.roundToTwoDigit(totalNetAmount));
+		invoice.setTotalCgstAmount(Util.roundToTwoDigit(totalCgstAmount));
+		invoice.setTotalSgstAmount(Util.roundToTwoDigit(totalSgstAmount));
+		invoice.setTotalIgstAmount(Util.roundToTwoDigit(totalIgstAmount));
+		invoice.setTotalAmount(Util.roundToTwoDigit(invoiceTotalAmount));
 
-		double invoiceTotalPrice = invoiceItems.stream().map(i -> i.getTotalPrice()).reduce(0d, Double::sum);
-		invoice.setTotalPrice(invoiceTotalPrice);
-
-		String invoiceNumberStr = generatedInvoiceNumberService.generateInvoiceNumber(invoice); // Generate InvoiceNumber
-		invoice.setInvoiceNumber(invoiceNumberStr);
+		String invoiceNumber = invoiceSeriesService.generateInvoiceNumber(invoice); // Generate InvoiceNumber
+		invoice.setInvoiceNumber(invoiceNumber);
 
 		invoice.setInvoiceItems(invoiceItems);
 
@@ -145,9 +222,14 @@ public class InvoiceEntryController {
 
 		invoice = invoiceService.save(invoice);// saving Table Invoice and ChildTables (InvoiceItem and InvoicePdf)
 
-		String successMsg = "Invoice " + invoiceNumberStr + " is created successfully";
+		String successMsg = "Invoice " + invoiceNumber + " is created successfully";
 
 		return "redirect:/invoiceEntry?successMsg=" + successMsg;
 	}
 
+	@RequestMapping(value = "/getBuyer", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody Buyer getBuyer(@RequestParam("id") int id) {
+		Buyer buyer = buyerService.getBuyerById(id);
+		return buyer;
+	}
 }

@@ -20,4 +20,15 @@ public class PdfUtils {
 		style.setFont(font).setFontSize(fontSize);
 		return style;
 	}
+
+	public static PdfFont font(String standardFonts) {
+		PdfFont font;
+		try {
+			font = PdfFontFactory.createFont(standardFonts);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return font;
+	}
 }

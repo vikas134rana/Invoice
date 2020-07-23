@@ -27,7 +27,7 @@ public class ItemService {
 		Optional<Item> itemOpt = itemRepository.findById(id);
 		return itemOpt.isPresent() ? itemOpt.get() : null;
 	}
-	
+
 	public List<Item> getItemsById(List<Integer> ids) {
 		return (List<Item>) itemRepository.findAllById(ids);
 	}

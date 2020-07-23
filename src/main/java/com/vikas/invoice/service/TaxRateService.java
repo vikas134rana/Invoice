@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.vikas.invoice.entity.Category;
 import com.vikas.invoice.entity.TaxRate;
 import com.vikas.invoice.repository.TaxRateRepository;
 
@@ -32,4 +33,8 @@ public class TaxRateService {
 		return (List<TaxRate>) taxRateRepository.findAll();
 	}
 
+	public TaxRate getTaxRate(Category category) {
+		TaxRate taxRate = category.getTaxRates().stream().findFirst().orElse(null);
+		return taxRate;
+	}
 }

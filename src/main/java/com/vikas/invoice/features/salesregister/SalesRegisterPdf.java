@@ -36,7 +36,7 @@ public class SalesRegisterPdf implements SalesRegister {
 
 		Style Times_N_9 = PdfUtils.fontStyle(StandardFonts.TIMES_ROMAN, 9);
 		Style Times_B_9 = PdfUtils.fontStyle(StandardFonts.TIMES_BOLD, 9);
-		
+
 		Table pageTable = new Table(8).setWidth(UnitValue.createPercentValue(100));
 		pageTable.addCell(new Paragraph("S.No").addStyle(Times_B_9));
 		pageTable.addCell(new Paragraph("Invoice Number").addStyle(Times_B_9));
@@ -56,12 +56,12 @@ public class SalesRegisterPdf implements SalesRegister {
 			pageTable.addCell(new Paragraph(invoice.getSeller().getAddress().getName()));
 			pageTable.addCell(new Paragraph(invoice.getBuyer().getAddress().getName()));
 			pageTable.addCell(new Paragraph("" + invoice.getTotalQuantity()));
-			pageTable.addCell(new Paragraph("" + invoice.getTotalPrice()));
+			pageTable.addCell(new Paragraph("" + invoice.getTotalAmount()));
 			pageTable.addStyle(Times_N_9);
 		}
 
 		this.doc.add(pageTable);
-		
+
 		this.doc.close();
 		return bos.toByteArray();
 	}

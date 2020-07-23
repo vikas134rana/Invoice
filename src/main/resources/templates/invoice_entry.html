@@ -22,8 +22,26 @@
 	padding: 10px;
 }
 
-#sellerTable, #buyerTable, #itemtable {
+#sellerTable, #itemtable {
 	margin-top: 15px;
+}
+
+#buyerAndExportTable>tbody>tr>td {
+	padding: 5px 20px 5px 10px;
+	vertical-align: top;
+}
+
+#buyerAndExportTable {
+	margin-top: 10px;
+}
+
+#buyerAndExportTable table td {
+	padding-bottom: 5px;
+	padding-left: 10px;
+}
+
+#exportInvoiceContainer {
+	display: none;
 }
 </style>
 
@@ -40,8 +58,25 @@
 
 		<form id="invoiceEntryForm" action="/saveInvoiceEntry" onsubmit="validateForm()">
 
+			<!-- Seller -->
+			<table id="sellerTable">
+				<tr>
+					<th>Seller Detail</th>
+				</tr>
+
+				<tr>
+					<td><label class="required">Seller</label></td>
+					<td><select id="sellerId" name="sellerId" onchange="window.location.href='/invoiceEntry?sellerId=' + this.value">
+							<option value="0">Select Seller</option>
+							<option th:each="seller : ${sellers}" th:value="${seller.id}" th:utext="${seller.address.name}"
+								th:selected="${selectedSeller != null and seller.id==selectedSeller.id} ? true: false" />
+					</select></td>
+				</tr>
+			</table>
+
+			<!-- Service Type -->
 			<div id="service_type" class="form-section">
-				<div class="form-section-label">Service Type</div>
+				<div class="form-section-label required">Service Type</div>
 
 				<div class="form-check-inline">
 					<label class="form-check-label"> <input value="1" type="radio" class="form-check-input" name="serviceType">Asset Transfer
@@ -78,69 +113,164 @@
 					</label>
 				</div>
 
-				<!-- <label class="radio-inline"> <input value="1" type="radio" name="serviceType"> Asset Transfer 
-				</label> <label class="radio-inline"> <input value="2" type="radio" name="serviceType"> Other 
-				</label> <label class="radio-inline"> <input value="3" type="radio" name="serviceType"> Cross 
-				</label> <label class="radio-inline"> <input value="4" type="radio" name="serviceType"> Export 
-				</label> <label class="radio-inline"> <input value="5" type="radio" name="serviceType"> Inward Delivery Challan 
-				</label> <label class="radio-inline"> <input value="6" type="radio" name="serviceType"> Outward Delivery Challan 
-				</label> -->
 			</div>
 
-			<table id="sellerTable">
-				<tr>
-					<th>Seller</th>
-				</tr>
 
+			<!-- Buyer And Export -->
+			<table border="1" id="buyerAndExportTable">
 				<tr>
-					<td>Seller</td>
-					<td><select id="sellerId" name="sellerId">
-							<option value="0">Select Seller</option>
-							<option th:each="seller : ${sellers}" th:value="${seller.id}" th:utext="${seller.address.name}" />
-					</select></td>
+					<td id="buyerContainer">
+						<table>
+							<tr>
+								<th colspan="2">Buyer Detail</th>
+							</tr>
+
+							<tr>
+								<td><label class="required">Buyer</label></td>
+								<td><select id="buyerId" name="buyerId">
+										<option value="0">Select Buyer</option>
+										<option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:utext="${buyer.address.name}" />
+								</select></td>
+							</tr>
+
+							<tr>
+								<td><label>Remarks</label></td>
+								<td><input type="text" name="remarks" /></td>
+							</tr>
+
+							<tr>
+								<td><label>Vehicle Number</label></td>
+								<td><input type="text" name="vehicleNumber" /></td>
+							</tr>
+
+							<tr>
+								<td><label>Transporter Name</label></td>
+								<td><input type="text" name="transporterName" /></td>
+							</tr>
+						</table>
+					</td>
+
+					<td id="buyerAddressContainer">
+						<table style="min-width: 300px; max-width: 500px;" >
+							<tr>
+								<th colspan="2">Buyer Address</th>
+							</tr>
+
+							<tr>
+								<td>Name</td>
+								<td id="buyerName"></td>
+							</tr>
+
+							<tr>
+								<td>Address</td>
+								<td id="buyerAddress"></td>
+							</tr>
+
+							<tr>
+								<td>Pincode</td>
+								<td id="buyerPincode"></td>
+							</tr>
+
+							<tr>
+								<td>State</td>
+								<td id="buyerState"></td>
+							</tr>
+
+							<tr>
+								<td>Country</td>
+								<td id="buyerCountry"></td>
+							</tr>
+
+							<tr>
+								<td>GSTIN</td>
+								<td id="buyerGstin"></td>
+							</tr>
+						</table>
+					</td>
+
+					<td id="exportInvoiceContainer">
+						<table>
+							<tr>
+								<th colspan="2">Export Invoice</th>
+							</tr>
+
+							<tr>
+								<td><label class="required">Currency type</label></td>
+								<td><select name="currencyType">
+										<option>Select Currency Type</option>
+										<option>Euro</option>
+										<option>INR</option>
+										<option>Pound</option>
+										<option>USD</option>
+								</select></td>
+							</tr>
+
+							<tr>
+								<td><label class="required">Exchange Rate</label></td>
+								<td><input type="number" name="exchangeRate" min="1" /></td>
+							</tr>
+
+							<tr>
+								<td><label class="required">Port Code</label></td>
+								<td><select name="portCode">
+										<option>Select Port Code</option>
+										<option>P1</option>
+										<option>P2</option>
+								</select></td>
+							</tr>
+
+							<tr>
+								<td colspan="2"><label class="required">IGST Type</label> <br> <input type="radio"> Supply meant for export with payment for
+									IGST <br> <input type="radio"> Supply meant for export under bond or letter of undertaking without payment for IGST</td>
+							</tr>
+						</table>
+					</td>
 				</tr>
 			</table>
 
-			<table id="buyerTable">
-				<tr>
-					<th>Buyer Detail</th>
-				</tr>
 
-				<tr>
-					<td>Buyer</td>
-					<td><select id="buyerId" name="buyerId">
-							<option value="0">Select Buyer</option>
-							<option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:utext="${buyer.address.name}" />
-					</select></td>
-				</tr>
-			</table>
-
-
-
-			<table class="table table-striped table-bordered" id="itemtable">
-				<thead class="thead-dark">
+			<!-- Items -->
+			<table class="table table-sm table-striped table-bordered" id="itemtable">
+				<thead style="background-color: gray; color: white;">
 					<tr>
 						<th>Sr No.</th>
 						<th>Item</th>
 						<th>Category</th>
-						<th>Price</th>
-						<th>Quanity</th>
-						<th>SumPrice</th>
+						<th>Unit Price</th>
+						<th>Quantity</th>
+						<th>Net Amount</th>
+						<th>CGST(%)</th>
+						<th>CGST Amount</th>
+						<th>SGST(%)</th>
+						<th>SGST Amount</th>
+						<th>Total Amount</th>
 					</tr>
 				</thead>
-				<tbody>
-					<tr th:each="item: ${items}">
-						<td th:text="${itemStat.index+1}"></td>
-						<td th:text="${item.name}"></td>
-						<td th:text="${item.category.name}"></td>
-						<td name="price" th:text="${item.itemPrice.price}"></td>
-						<td><input type="number" name="quantity" min="1" onchange="updateSumPrice(this)"><input type="hidden" th:value="${item.id}"
-							name="itemId"></td>
-						<td><input type="text" name="sumPrice" style="border: 0" readonly></td>
+				<tbody th:if="${selectedSeller!=null}">
+					<tr th:each="itemPrice : ${selectedSeller.itemPrices}"
+						th:with="	item=${itemPrice.item}, itemName=${item.name},
+									categoryName=${item.category.name}, itemPrice=${itemPriceService.getItemPrice(item,selectedSeller).price},
+									cgstRate=${taxRateService.getTaxRate(item.category).cgstRate}, 
+									sgstRate=${taxRateService.getTaxRate(item.category).sgstRate}">
+
+						<td th:text="${itemPriceStat.index+1}"></td>
+						<td th:text="${itemName}"></td>
+						<td th:text="${categoryName}"></td>
+						<td name="price" th:text="${itemPrice}"></td>
+						<td><input type="hidden" th:value="${item.id}" name="itemId"> <input type="number" name="quantity" min="1"
+							th:data-itemPrice="${itemPrice}" th:data-cgstRate="${cgstRate}" th:data-sgstRate="${sgstRate}"
+							th:onchange="updateItemFields(this,this.getAttribute('data-itemPrice'), this.value, this.getAttribute('data-cgstRate'), this.getAttribute('data-sgstRate'))"></td>
+						<td name="netAmount"></td>
+						<td name="cgstRate" th:text="${cgstRate}"></td>
+						<td name="cgstAmount"></td>
+						<td name="sgstRate" th:text="${sgstRate}"></td>
+						<td name="sgstAmount"></td>
+						<td name="totalAmount"></td>
 					</tr>
 				</tbody>
 			</table>
 
+			<!-- Save -->
 			<table id="buttonsTable">
 				<tr>
 					<td><input type="button" name="preview" value="Preview"></td>
@@ -154,25 +284,100 @@
 	</div>
 
 	<script type="text/javascript">
-		/* function showPopup(heading, msg) {
-			document.getElementById('popupModalLabel').textContent = heading;
-			document.getElementById('popupModalBody').textContent = msg;
-			document.getElementById('modalTrigger').click();
-			console.log(msg);
-		} */
+
+		// Service Type RadioButton
+		$(function() {
+			$('input:radio[name="serviceType"]').change(function() {
+				selectedRadioValue = $(this).val();
+
+				// export
+				if (selectedRadioValue == 4) {
+					$("#exportInvoiceContainer").show();
+				} else {
+					$("#exportInvoiceContainer").hide();
+				}
+			});
+		});
+
+		// Buyer Address
+		$(function() {
+			$("#buyerId").change(function() {
+
+				var buyerId = ($('option:selected', this).val());
+
+				$.ajax({
+					type : "post",
+					url : "/getBuyer?id=" + buyerId,
+					cache : false,
+					success : function(responseJson) {
+
+						var buyerNameEle = $("#buyerName");
+						var buyerAddressEle = $("#buyerAddress");
+						var buyerPincodeEle = $("#buyerPincode");
+						var buyerStateEle = $("#buyerState");
+						var buyerCountryEle = $("#buyerCountry");
+						var buyerGstinEle = $("#buyerGstin");
+
+						// No buyer is Selected
+						if (buyerId == 0) {
+							buyerNameEle.text("");
+							buyerAddressEle.text("");
+							buyerPincodeEle.text("");
+							buyerStateEle.text("");
+							buyerCountryEle.text("");
+							buyerGstinEle.text("");
+							return;
+						}
+
+						buyerNameEle.text(responseJson.address.name);
+						buyerAddressEle.text(responseJson.address.addressDetail);
+						buyerPincodeEle.text(responseJson.address.pincode);
+						buyerStateEle.text(responseJson.address.state.name);
+						buyerCountryEle.text(responseJson.address.country.name);
+						buyerGstinEle.text(responseJson.address.gstin);
+
+					},
+					error : function() {
+						alert('Error while selecting buyer');
+					}
+				});
+			});
+		});
+
+		// Item Fields
+		function updateItemFields(quantityEle, quantity, price, cgstRate, sgstRate) {
+
+			var trEle = quantityEle.parentElement.parentElement;
+
+			var netAmount = price * quantity;
+			var cgstAmount = netAmount * cgstRate / 100;
+			var sgstAmount = netAmount * sgstRate / 100;
+			var totalAmount = netAmount + cgstAmount + sgstAmount;
+
+			var netAmountEle = trEle.querySelector("td[name='netAmount']");
+			var cgstAmountEle = trEle.querySelector("td[name='cgstAmount']");
+			var sgstAmountEle = trEle.querySelector("td[name='sgstAmount']");
+			var totalAmountEle = trEle.querySelector("td[name='totalAmount']");
+
+			netAmountEle.innerHTML = netAmount.toFixed(2);
+			cgstAmountEle.innerHTML = cgstAmount.toFixed(2);
+			sgstAmountEle.innerHTML = sgstAmount.toFixed(2);
+			totalAmountEle.innerHTML = totalAmount.toFixed(2);
+
+		}
 
 		// Form Validation
 		$("#invoiceEntryForm").submit(function() {
 
-			// InvoiceType Radio
-			if (!$("input[name='serviceType']:checked").val()) {
-				alert('Select ServiceType');
-				return false;
-			}
-
 			// Seller Dropdown
 			if ($('#sellerId :selected').index() == 0) {
 				alert('Select Seller');
+				return false;
+			}
+
+			// InvoiceType Radio
+			if (!$("input[name='serviceType']:checked").val()) {
+				alert('Select ServiceType');
 				return false;
 			}
 

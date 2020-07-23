@@ -1,5 +1,8 @@
 package com.vikas.invoice.util;
 
+import com.vikas.invoice.entity.Buyer;
+import com.vikas.invoice.entity.Seller;
+
 public class InvoiceUtils {
 
 	public static char invoiceTypeChar(int invoiceType) {
@@ -29,14 +32,14 @@ public class InvoiceUtils {
 			break;
 		case 8:
 			type = 'E';
-			break;	
+			break;
 		default:
 			throw new IllegalArgumentException("Invoice Type value " + invoiceType + " is invalid");
 		}
 
 		return type;
 	}
-	
+
 	public static String invoiceTypeValue(int invoiceType) {
 		String type;
 
@@ -61,16 +64,19 @@ public class InvoiceUtils {
 			break;
 		case 7:
 			type = "General Waste";
-			break;	
+			break;
 		case 8:
 			type = "E-Waste";
-			break;	
+			break;
 		default:
 			throw new IllegalArgumentException("Invoice Type value " + invoiceType + " is invalid");
 		}
 
 		return type;
 	}
-	
-	
+
+	public static boolean isIGST(Seller seller, Buyer buyer) {
+		return seller.getAddress().getState().getId() != buyer.getAddress().getState().getId();
+	}
+
 }

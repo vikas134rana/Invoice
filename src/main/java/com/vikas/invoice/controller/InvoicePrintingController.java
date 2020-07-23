@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.vikas.invoice.entity.Invoice;
+import com.vikas.invoice.service.BuyerService;
 import com.vikas.invoice.service.InvoiceService;
+import com.vikas.invoice.service.SellerService;
 
 @Controller
 public class InvoicePrintingController {
@@ -19,13 +21,22 @@ public class InvoicePrintingController {
 	@Autowired
 	InvoiceService invoiceService;
 
+	@Autowired
+	SellerService sellerService;
+
+	@Autowired
+	BuyerService buyerService;
+
 	@GetMapping("/invoicePrinting")
 	public String invoicePrinting(Model model, @RequestParam(required = false, name = "successMsg") String successMsg) {
 
-		// It means it is a redirect call after Invoice is successfully created
+		// It means it is a redirect call after Invoice is successfully modified
 		if (successMsg != null) {
 			model.addAttribute("successMsg", successMsg);
 		}
+
+		model.addAttribute("sellers", sellerService.getAllSellers());
+		model.addAttribute("buyers", buyerService.getAllBuyers());
 
 		return "invoice_printing";
 	}
@@ -48,6 +59,7 @@ public class InvoicePrintingController {
 	@GetMapping("/invoicePrintingSearch")
 	public String invoicePrintingSearch(
 			@RequestParam("invoiceNumber_search") String invoiceNumber,
+			@RequestParam("sellerId_search") Integer sellerId,
 			@RequestParam("buyerId_search") Integer buyerId,
 			@RequestParam("invoiceType_search") Integer invoiceType,
 			@RequestParam("startDate_search") String startDateStr,
@@ -59,40 +71,53 @@ public class InvoicePrintingController {
 		LocalDate startDate = LocalDate.parse(startDateStr, formatter);
 		LocalDate endDate = LocalDate.parse(endDateStr, formatter);
 
+		System.out.println("=== Search Invoice ===");
+
 		System.out.println("invoiceNumber: " + invoiceNumber);
+		System.out.println("sellerId: " + sellerId);
 		System.out.println("buyerId: " + buyerId);
 		System.out.println("invoiceType: " + invoiceType);
 		System.out.println("startDate: " + startDate);
 		System.out.println("endDate: " + endDate);
 
-		List<Invoice> invoices = invoiceService.searchInvoice(invoiceNumber, buyerId, invoiceType, startDate, endDate);
+		List<Invoice> invoices = invoiceService.searchInvoice(invoiceNumber, sellerId, buyerId, invoiceType, startDate, endDate);
+
 		model.addAttribute("invoices", invoices);
+		model.addAttribute("sellers", sellerService.getAllSellers());
+		model.addAttribute("buyers", buyerService.getAllBuyers());
 
 		return "invoice_printing";
 	}
 
-	@GetMapping("/modifyInvoiceForm")
-	public String modifyInvoice(Model model, @RequestParam("id") int id) {
-
-		Invoice invoiceToModify = invoiceService.getInvoiceById(id);
-		model.addAttribute("modify", true);
-		model.addAttribute("invoiceToModify", invoiceToModify);
-
-		return "invoice_printing";
-	}
-	
+	// @formatter:off
 	@GetMapping("/modifyInvoice")
-	public String modifyInvoice(Model model,@RequestParam("id") int id,@RequestParam("param1") String param1, @RequestParam("param2") String param2) {
+	public String modifyInvoice(Model model, 
+			@RequestParam("id") int id, 
+			@RequestParam("vehicleNumber") String vehicleNumber,
+			@RequestParam("transporterName") String transporterName, 
+			@RequestParam("arDocNumber") String arDocNumber,
+			@RequestParam("apDocNumber") String apDocNumber) {
+		// @formatter:on
 
 		System.out.println("=== Modify Invoice ===");
-		
-		System.out.println("id: "+id);
-		System.out.println("param1: "+param1);
-		System.out.println("param2: "+param2);
-		
+
+		System.out.println("id: " + id);
+		System.out.println("vehicleNumber: " + vehicleNumber);
+		System.out.println("transporterName: " + transporterName);
+		System.out.println("arDocNumber: " + arDocNumber);
+		System.out.println("apDocNumber: " + apDocNumber);
+
 		Invoice invoice = invoiceService.getInvoiceById(id);
-		
-		model.addAttribute("invoiceModifySuccessMsg", "Invoice "+invoice.getInvoiceNumber()+" modified successfully.");
+		invoice.setVehicleNumber(vehicleNumber);
+		invoice.setTransporterName(transporterName);
+		invoice.setArDocNumber(arDocNumber);
+		invoice.setApDocNumber(apDocNumber);
+
+		invoiceService.save(invoice); // modify/update invoice
+
+		model.addAttribute("invoiceModifySuccessMsg", "Invoice " + invoice.getInvoiceNumber() + " modified successfully.");
+		model.addAttribute("sellers", sellerService.getAllSellers());
+		model.addAttribute("buyers", buyerService.getAllBuyers());
 
 		return "invoice_printing";
 	}

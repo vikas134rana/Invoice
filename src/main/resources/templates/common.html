@@ -1,0 +1,42 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+	<!-- Modify Invoice -->
+	<div th:remove="tag" th:fragment="modifyInvoiceForm(invoiceToModify)">
+	<div class="modal fade" tabindex="-1" id="modifyModal" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" th:text="${'Modify Invoice '+ invoiceToModify.invoiceNumber}"></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<form action="/asset/modifyInvoice">
+					<div class="modal-body">
+						<p></p>
+						<table>
+							<tr>
+								<td><label>Invoice Number</label></td>
+								<td><input type="text" name="param1" th:value="${invoiceToModify.invoiceNumber}">
+								<input type="hidden" name="id" th:value="${invoiceToModify.id}"></td>
+							</tr>
+							<tr>
+								<td><label>Status</label></td>
+								<td><input type="text" name="param2" th:value="${invoiceToModify.statusCode}"></td>
+							</tr>
+						</table>
+
+					</div>
+					<div class="modal-footer">
+						<input type="button" class="btn btn-secondary" data-dismiss="modal" value="Close" /> <input type="submit" class="btn btn-primary" value="Save" />
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	</div>
+
+
+</body>
+</html>

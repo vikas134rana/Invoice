@@ -6,7 +6,6 @@
 <div th:replace="header :: headerHead"></div>
 
 <style>
-
 .form-section {
 	margin-top: 10px;
 }
@@ -21,11 +20,6 @@
 
 #searchForm label {
 	margin-left: 20px;
-}
-
-.required:after {
-	content: " *";
-	color: red;
 }
 
 #salesRegisterDiv td {
@@ -93,12 +87,18 @@
 
 				<tr>
 					<td><label>Seller</label></td>
-					<td><input type="text" name="sellerId_search" /></td>
+					<td><select name="sellerId_search">
+							<option value="0">Select Seller</option>
+							<option th:each="seller : ${sellers}" th:value="${seller.id}" th:text="${seller.address.name}"></option>
+					</select></td>
 				</tr>
 
 				<tr>
 					<td><label>Buyer</label></td>
-					<td><input type="text" name="buyerId_search" /></td>
+					<td><select name="buyerId_search">
+							<option value="0">Select Buyer</option>
+							<option th:each="buyer : ${buyers}" th:value="${buyer.id}" th:text="${buyer.address.name}"></option>
+					</select></td>
 				</tr>
 
 				<tr>

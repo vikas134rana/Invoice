@@ -25,10 +25,37 @@ public class InvoiceItem {
 	private Invoice invoice;
 
 	@Column
+	private String unit;
+
+	@Column
 	private int quantity;
 
 	@Column
-	private double totalPrice;
+	private double unitPrice;
+
+	@Column
+	private double netAmount;
+
+	@Column
+	private double cgstRate;
+
+	@Column
+	private double cgstAmount;
+
+	@Column
+	private double sgstRate;
+
+	@Column
+	private double sgstAmount;
+
+	@Column
+	private double igstRate;
+
+	@Column
+	private double igstAmount;
+
+	@Column
+	private double totalAmount;
 
 	public InvoiceItem() {
 	}
@@ -57,6 +84,14 @@ public class InvoiceItem {
 		this.invoice = invoice;
 	}
 
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
 	public int getQuantity() {
 		return quantity;
 	}
@@ -65,17 +100,83 @@ public class InvoiceItem {
 		this.quantity = quantity;
 	}
 
-	public double getTotalPrice() {
-		return totalPrice;
+	public double getUnitPrice() {
+		return unitPrice;
 	}
 
-	public void setTotalPrice(double totalPrice2) {
-		this.totalPrice = totalPrice2;
+	public void setUnitPrice(double unitPrice) {
+		this.unitPrice = unitPrice;
+	}
+
+	public double getNetAmount() {
+		return netAmount;
+	}
+
+	public void setNetAmount(double netAmount) {
+		this.netAmount = netAmount;
+	}
+
+	public double getCgstRate() {
+		return cgstRate;
+	}
+
+	public void setCgstRate(double cgstRate) {
+		this.cgstRate = cgstRate;
+	}
+
+	public double getCgstAmount() {
+		return cgstAmount;
+	}
+
+	public void setCgstAmount(double cgstAmount) {
+		this.cgstAmount = cgstAmount;
+	}
+
+	public double getSgstRate() {
+		return sgstRate;
+	}
+
+	public void setSgstRate(double sgstRate) {
+		this.sgstRate = sgstRate;
+	}
+
+	public double getSgstAmount() {
+		return sgstAmount;
+	}
+
+	public void setSgstAmount(double sgstAmount) {
+		this.sgstAmount = sgstAmount;
+	}
+
+	public double getIgstRate() {
+		return igstRate;
+	}
+
+	public void setIgstRate(double igstRate) {
+		this.igstRate = igstRate;
+	}
+
+	public double getIgstAmount() {
+		return igstAmount;
+	}
+
+	public void setIgstAmount(double igstAmount) {
+		this.igstAmount = igstAmount;
+	}
+
+	public double getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(double totalAmount) {
+		this.totalAmount = totalAmount;
 	}
 
 	@Override
 	public String toString() {
-		return "InvoiceItem [id=" + id + ", item=" + item + ", invoice=" + invoice + ", quantity=" + quantity + ", totalPrice=" + totalPrice + "]";
+		return "InvoiceItem [id=" + id + ", item=" + item + ", invoice=" + invoice + ", unit=" + unit + ", quantity=" + quantity + ", unitPrice=" + unitPrice
+				+ ", netAmount=" + netAmount + ", cgstRate=" + cgstRate + ", cgstAmount=" + cgstAmount + ", sgstRate=" + sgstRate + ", sgstAmount=" + sgstAmount
+				+ ", igstRate=" + igstRate + ", igstAmount=" + igstAmount + ", totalAmount=" + totalAmount + "]";
 	}
 
 }

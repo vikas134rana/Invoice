@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Asset - InvoiceEntry</title>
+
+<div th:replace="header :: headerHead"></div>
+
+<style>
+#container {
+	margin: 20px;
+	border: 1px solid black;
+}
+
+#container>table {
+	width: 80%;
+	margin: auto;
+}
+
+#container>table table {
+	width: 100%;
+	margin: auto;
+}
+
+#container>table>tr>td {
+	width: auto;
+}
+
+#categoryContainer, #itemContainer {
+	vertical-align: top;
+	background-color: #e6f3ff;
+	border: 20px solid white;
+}
+
+#categoryContainer table, #itemContainer table {
+	border: 5px solid #bfe0ff;;
+}
+
+.category:hover {
+	background-color: gray;
+}
+</style>
+
+</head>
+<body>
+
+
+	<div th:replace="header::pageHeader"></div>
+
+	<!-- Message - Invoice successfully created -->
+	<div th:if="${successMsg != null}" th:text="${successMsg}" class="alert alert-success"></div>
+
+	<div id="container">
+
+		<table id="sellerTable">
+			<tr>
+				<td><label>Seller</label></td>
+				<td><select id="sellerId" name="sellerId" onchange="window.location.href='/invoicePriceMaintainance?sellerId=' + this.value">
+						<option value="0">Select Seller</option>
+						<option th:each="seller : ${sellers}" th:value="${seller.id}" th:utext="${seller.address.name}"
+							th:selected="${selectedSeller != null and seller.id==selectedSeller.id} ? true: false" />
+				</select></td>
+			</tr>
+		</table>
+
+		<table border="1">
+			<tr>
+
+				<!-- ==================== Category Container ====================== -->
+				<td id="categoryContainer">
+					<form action="/invoicePriceMaintainance/saveCategory" method="get">
+						<table>
+							<tr>
+								<th colspan="2" class="text-center bg-secondary text-light">Category</th>
+							</tr>
+							<tr>
+								<td style="padding: 5px"><input type="text" name="categoryName"
+									th:value="${selectedCategory!=null ? selectedCategory.name : (categorySearch!=null ? categorySearch : '') }"
+									th:onchange="onchangeCategoryNameUrl(this)" th:disabled="${selectedSeller==null} ? true : false" placeholder="Category Name"></td>
+								<td><input type="hidden" name="categoryId" th:value="${selectedCategory!=null ? selectedCategory.id : ''}"> <input type="hidden"
+									name="sellerId" th:value="${selectedSeller!=null ? selectedSeller.id : 0}"> <br></td>
+							</tr>
+							<tr>
+								<td rowspan="6" valign="top">
+									<div style="overflow-y: scroll; height: 300px; background: white;">
+										<div th:if="${selectedSeller != null}" th:each="category : ${categories}" th:text="${category.name}" class="category"
+											th:data-categoryId="${category.id}" th:onclick="onclickCategoryIdUrl(this.getAttribute('data-categoryId'))"></div>
+									</div>
+								</td>
+								<td>
+									<div style="margin-left: 40px;">
+										HSN/SAC <br> <input name="hsn" th:value="${selectedCategory!=null ? selectedCategory.hsnCode : ''}"
+											th:disabled="${selectedCategory==null and categorySearch==null} ? true : false" onchange="">
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td><div style="margin-left: 40px;">
+										CGST RATE<br> <input name="cgstRate" th:value="${selectedTaxRate!=null ? selectedTaxRate.cgstRate : ''}"
+											th:disabled="${selectedCategory==null  and categorySearch==null} ? true : false">
+									</div></td>
+							</tr>
+							<tr>
+								<td><div style="margin-left: 40px;">
+										SGST RATE<br> <input name="sgstRate" th:value="${selectedTaxRate!=null ? selectedTaxRate.sgstRate : ''}"
+											th:disabled="${selectedCategory==null  and categorySearch==null} ? true : false">
+									</div></td>
+							</tr>
+
+							<tr>
+								<td>&nbsp;</td>
+							</tr>
+							<tr>
+								<td>&nbsp;</td>
+							</tr>
+							<tr>
+								<td>&nbsp;</td>
+							</tr>
+
+							<tr>
+								<td colspan="2" class="text-center pt-3 pb-1"><input type="submit" id="categorySave" value="Save" disabled="disabled"></td>
+							</tr>
+						</table>
+					</form>
+				</td>
+
+				<!-- ============================== Item Container =============================== -->
+				<td id="itemContainer">
+					<form action="/invoicePriceMaintainance/saveItem" method="post">
+						<table>
+							<tr>
+								<th colspan="3" class="text-center bg-secondary text-light">Item&nbsp;&nbsp;&nbsp;&nbsp;</th>
+							</tr>
+							<tr>
+								<td style="padding: 5px"><input type="text" name="itemName"
+									th:value="${selectedItem!=null ? selectedItem.name : (itemSearch!=null ? itemSearch : '')}" onchange="onchangeItemNameUrl(this)"
+									th:disabled="${selectedCategory==null} ? true : false" placeholder="Item Name"></td>
+								<td><input type="hidden" name="itemId" th:value="${selectedItem!=null ? selectedItem.id : ''}"></td>
+								<td><input type="hidden" name="categoryId" th:value="${selectedCategory!=null ? selectedCategory.id : ''}"> <input type="hidden"
+									name="sellerId" th:value="${selectedSeller!=null ? selectedSeller.id : 0}"></td>
+							</tr>
+							<tr>
+								<td rowspan="3" valign="top">
+									<div style="overflow-y: scroll; height: 300px; background: white;">
+										<div th:if="${selectedCategory != null}" th:each="item : ${items}" th:text="${item.name}" th:data-itemId="${item.id}"
+											th:onclick="onclickItemIdUrl(this.getAttribute('data-itemId'))" class="item"></div>
+									</div>
+								</td>
+								<td>Unit</td>
+								<td><select name="unit" th:disabled="${selectedItem==null and itemSearch==null} ? true : false">
+										<option value="0">Select unit</option>
+										<option th:each="unit : ${units}" th:text="${unit}" th:value="${unit}"
+											th:selected="${selectedItemPrice!=null and selectedItem != null and selectedItem.unit==unit} ? true: false"></option>
+								</select></td>
+							</tr>
+							<tr>
+								<td>Price</td>
+								<td><input type="number" name="price" th:value="${selectedItemPrice!=null ? selectedItemPrice.price : ''}"
+									th:disabled="${selectedItem==null and itemSearch==null} ? true : false" step=".01"></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td><textarea rows="7" cols="23"></textarea></td>
+							</tr>
+							<tr>
+								<td colspan="3" class="text-center pt-3 pb-1"><input type="submit" value="Save" id="itemSave" disabled="disabled"></td>
+							</tr>
+						</table>
+					</form>
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<script type="text/javascript">
+		// Category change background color onHover and onClick
+		$(function() {
+			$(".category, .item").on("click", function() {
+				$(".category, .item").css("background-color", "transparent");
+				var clickedDiv = $(this);
+				clickedDiv.css("background-color", "yellow");
+
+				$(".category, .item").hover(function() {
+					$(this).css("background-color", "gray");
+				}, function() {
+					if (clickedDiv != $(this)) {
+						$(this).css("background-color", "transparent");
+					}
+				});
+			});
+		});
+	</script>
+
+	<script th:inline="javascript">
+		function onchangeCategoryNameUrl(ele) {
+
+			var selectedSellerId = /*[[${selectedSeller!=null ? selectedSeller.id : null}]]*/null;
+			if (selectedSellerId) {
+				url = "/invoicePriceMaintainance?sellerId=" + selectedSellerId + "&categorySearch=" + ele.value;
+				window.location.href = url;
+			}
+		}
+
+		function onclickCategoryIdUrl(categoryId) {
+
+			var selectedSellerId = /*[[${selectedSeller!=null ? selectedSeller.id : null}]]*/null;
+
+			if (selectedSellerId) {
+				var categorySearch = document.getElementsByName('categoryName')[0].value;
+				var categorySearch = /*[[${categorySearch!=null ? categorySearch : null}]]*/null;
+
+				url = "/invoicePriceMaintainance?sellerId=" + selectedSellerId + "&categoryId=" + categoryId;
+
+				if (categorySearch) {
+					url = url + "&categorySearch=" + categorySearch;
+				}
+
+				window.location.href = url;
+			}
+		}
+
+		function onchangeItemNameUrl(ele) {
+
+			var selectedSellerId = /*[[${selectedSeller!=null ? selectedSeller.id : null}]]*/null;
+			var selectedCategoryId = /*[[${selectedCategory!=null ? selectedCategory.id : null}]]*/null;
+			var categorySearch = /*[[${categorySearch!=null ? categorySearch : null}]]*/null;
+
+			url = "/invoicePriceMaintainance?sellerId=" + selectedSellerId + "&categoryId=" + selectedCategoryId + "&itemSearch=" + ele.value;
+
+			if (categorySearch) {
+				url = url + "&categorySearch=" + categorySearch;
+			}
+
+			window.location.href = url;
+
+		}
+
+		function onclickItemIdUrl(itemId) {
+
+			var selectedSellerId = /*[[${selectedSeller!=null ? selectedSeller.id : null}]]*/null;
+			var selectedCategoryId = /*[[${selectedCategory!=null ? selectedCategory.id : null}]]*/null;
+			var categorySearch = /*[[${categorySearch!=null ? categorySearch : null}]]*/null;
+			var itemSearch = /*[[${itemSearch!=null ? itemSearch : null}]]*/null;
+
+			url = "/invoicePriceMaintainance?sellerId=" + selectedSellerId + "&categoryId=" + selectedCategoryId + "&itemId=" + itemId;
+
+			if (itemSearch) {
+				url = url + "&itemSearch=" + itemSearch;
+			}
+
+			if (categorySearch) {
+				url = url + "&categorySearch=" + categorySearch;
+			}
+
+			window.location.href = url;
+
+		}
+
+		// Enable Category Save Button
+		$(function() {
+			$('[name="hsn"], [name="cgstRate"], [name="sgstRate"]').change(function() {
+
+				var hsnLength = $('[name="hsn"]').val().length;
+				var cgstRateLength = $('[name="cgstRate"]').val().length;
+				var sgstRateLength = $('[name="sgstRate"]').val().length;
+
+				if (hsnLength == 0 || cgstRateLength == 0 || sgstRateLength == 0) {
+					$('#categorySave').attr("disabled", true);
+				} else {
+					$('#categorySave').attr("disabled", false);
+				}
+			});
+		});
+
+		// Enable Item Save Button
+		$(function() {
+			$('[name="unit"], [name="price"]').change(function() {
+				var val = $("[name='unit'] option:selected").val();
+				if (val != 0) {
+					$('#itemSave').attr("disabled", false);
+				} else {
+					$('#itemSave').attr("disabled", true);
+				}
+			});
+		});
+	</script>
+
+
+
+</body>
+</html>

@@ -28,6 +28,10 @@ public class ItemPrice {
 	@Column
 	private LocalDateTime start_date;
 
+	@ManyToOne
+	@JoinColumn(name = "item_id")
+	private Item item;
+
 	public ItemPrice() {
 	}
 
@@ -61,6 +65,14 @@ public class ItemPrice {
 
 	public void setStart_date(LocalDateTime start_date) {
 		this.start_date = start_date;
+	}
+
+	public Item getItem() {
+		return item;
+	}
+
+	public void setItem(Item item) {
+		this.item = item;
 	}
 
 	@Override

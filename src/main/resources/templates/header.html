@@ -41,6 +41,11 @@
 	margin-bottom: 0;
 	border-radius: 0;
 }
+
+.required:after {
+	content: " *";
+	color: red;
+}
 </style>
 	</div>
 
@@ -52,7 +57,7 @@
 
 			<!-- Links -->
 			<ul class="navbar-nav">
-				<li class="nav-item"><a class="nav-link" href="#">Invoice Price Maintainance</a></li>
+				<li class="nav-item"><a class="nav-link" href="/invoicePriceMaintainance">Invoice Price Maintainance</a></li>
 				<li class="nav-item"><a class="nav-link" href="/invoiceEntry">Invoice Entry</a></li>
 				<li class="nav-item"><a class="nav-link" href="/invoicePrinting">Invoice Printing</a></li>
 				<li class="nav-item"><a class="nav-link" href="/salesRegister">Sales Register</a></li>
@@ -77,25 +82,6 @@
 				</div>
 			</div>
 		</nav>  -->
-
-		<!-- Button trigger modal -->
-		<button type="button" style="display: none;" id="modalTrigger" class="btn btn-primary" data-toggle="modal" data-target="#popupModal">Launch
-			demo modal</button>
-
-		<!-- Modal -->
-		<div class="modal fade" id="popupModal" tabindex="-1" role="dialog" aria-labelledby="popupModalLabel" aria-hidden="true">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h3 class="modal-title" id="popupModalLabel">Popup title</h3>
-					</div>
-					<div class="modal-body" id="popupModalBody">Popup Body</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-					</div>
-				</div>
-			</div>
-		</div>
 
 	</div>
 

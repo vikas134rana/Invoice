@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -12,6 +13,7 @@ import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.io.source.ByteArrayOutputStream;
+import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -24,6 +26,7 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.Style;
 import com.itextpdf.layout.element.AreaBreak;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.element.Text;
@@ -38,16 +41,20 @@ import com.vikas.invoice.entity.enums.InvoiceStatus;
 import com.vikas.invoice.features.invoicepdf.InvoiceBuilder;
 import com.vikas.invoice.features.invoicepdf.InvoiceStructure;
 import com.vikas.invoice.features.invoicepdf.PdfCopy;
+import com.vikas.invoice.service.ItemPriceService;
 import com.vikas.invoice.util.InvoiceUtils;
 import com.vikas.invoice.util.PdfUtils;
 import com.vikas.invoice.util.Util;
 
 public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 
+	@Autowired
+	ItemPriceService itemPriceService;
+
 	private Document doc;
 	private Invoice invoice;
 
-	private static final float[] itemTableColumnWidths = { 5, 45, 18, 12, 8, 12 };
+	private static final float[] itemTableColumnWidths = { 4, 16, 10, 7, 7, 8, 5, 8, 5, 8, 5, 8, 9 };
 
 	public GenericInvoicePDF(Invoice invoice) {
 		this.invoice = invoice;
@@ -86,10 +93,11 @@ public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 		byte[] invoicePdfData = invoice.getInvoicePdf().getPdfData();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-		// Add Watermark to pdf (URL: https://kb.itextpdf.com/home/it7kb/examples/watermark-examples)
+		// Add Watermark to pdf
+		// (URL:https://kb.itextpdf.com/home/it7kb/examples/watermark-examples)
 		PdfDocument pdfDoc = new PdfDocument(new PdfReader(new ByteArrayInputStream(invoicePdfData)), new PdfWriter(bos));
 		Document doc = new Document(pdfDoc);
-		
+
 		Resource resource = new ClassPathResource("static\\images\\cancel.jpg");
 		ImageData img = ImageDataFactory.create(resource.getFile().getAbsolutePath());
 
@@ -146,7 +154,18 @@ public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 
 		Table pagHeaderTable = new Table(2).setWidth(UnitValue.createPercentValue(100));
 
-		Cell cell1 = new Cell().add(new Paragraph("SAMSUNG"));
+//		Cell cell1 = new Cell().add(new Paragraph("SAMSUNG"));
+		Resource resource = new ClassPathResource("static\\images\\samsung_logo.png");
+		ImageData imageData = null;
+		try {
+			imageData = ImageDataFactory.create(resource.getFile().getAbsolutePath());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		Image samsungLogo = new Image(imageData);
+		samsungLogo.scaleToFit(100, 33);
+
+		Cell cell1 = new Cell().add(samsungLogo);
 		Cell cell2 = new Cell().add(new Paragraph(pdfCopy.getValue())).addStyle(TIMES_N_9()).setTextAlignment(TextAlignment.RIGHT);
 
 		pagHeaderTable.addCell(cell1);
@@ -268,21 +287,60 @@ public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 		itemTableHead.addCell(new Paragraph("Category"));
 		itemTableHead.addCell(new Paragraph("Price"));
 		itemTableHead.addCell(new Paragraph("Quantity"));
-		itemTableHead.addCell(new Cell().add(new Paragraph("Sum Price")).setTextAlignment(TextAlignment.RIGHT));
-		itemTableHead.addStyle(TIMES_B_9());
+		itemTableHead.addCell(new Paragraph("Net Amount"));
+		itemTableHead.addCell(new Paragraph("CGST Rate"));
+		itemTableHead.addCell(new Paragraph("CGST Amount"));
+		itemTableHead.addCell(new Paragraph("SGST Rate"));
+		itemTableHead.addCell(new Paragraph("CGST Amount"));
+		itemTableHead.addCell(new Paragraph("IGST Rate"));
+		itemTableHead.addCell(new Paragraph("IGST Amount"));
+		itemTableHead.addCell(new Cell().add(new Paragraph("Total Amount")).setTextAlignment(TextAlignment.RIGHT));
+		itemTableHead.addStyle(TIMES_B_8());
 
 		Table itemTableData = new Table(UnitValue.createPercentArray(itemTableColumnWidths)).setWidth(UnitValue.createPercentValue(100)).setFixedLayout();
 		for (int i = 0; i < invoiceItems.size(); i++) {
 			InvoiceItem invoiceItem = invoiceItems.get(i);
 			Item item = invoiceItem.getItem();
 
-			itemTableData.addCell(new Paragraph("" + (i + 1))); // SR NO.
-			itemTableData.addCell(new Paragraph(invoiceItem.getItem().getName())); // Item
-			itemTableData.addCell(new Paragraph(item.getCategory().getName())); // Category
-			itemTableData.addCell(new Paragraph("" + item.getItemPrice().getPrice())); // Price
-			itemTableData.addCell(new Paragraph("" + invoiceItem.getQuantity())); // Quantity
-			itemTableData.addCell(new Cell().add(new Paragraph("" + invoiceItem.getTotalPrice())).setTextAlignment(TextAlignment.RIGHT)); // Sum Price
-			itemTableData.addStyle(TIMES_N_9());
+			String srNo = "" + (i + 1);
+			itemTableData.addCell(new Paragraph(srNo)); // SR NO.
+
+			String itemName = invoiceItem.getItem().getName();
+			itemTableData.addCell(new Paragraph(itemName)); // Item
+
+			String categoryName = item.getCategory().getName();
+			itemTableData.addCell(new Paragraph(categoryName)); // Category
+
+			String price = Util.roundToTwoDigitStr(invoiceItem.getUnitPrice());
+			itemTableData.addCell(new Paragraph(price).setTextAlignment(TextAlignment.RIGHT)); // Price
+
+			String quantity = "" + invoiceItem.getQuantity();
+			itemTableData.addCell(new Paragraph(quantity).setTextAlignment(TextAlignment.RIGHT)); // Quantity
+
+			String netAmount = "" + Util.roundToTwoDigitStr(invoiceItem.getNetAmount());
+			itemTableData.addCell(new Paragraph(netAmount).setTextAlignment(TextAlignment.RIGHT)); // Net Amount
+
+			String cgstRate = "" + invoiceItem.getCgstRate();
+			itemTableData.addCell(new Paragraph(cgstRate).setTextAlignment(TextAlignment.RIGHT)); // Cgst Rate
+
+			String cgstAmount = Util.roundToTwoDigitStr(invoiceItem.getCgstAmount());
+			itemTableData.addCell(new Paragraph(cgstAmount).setTextAlignment(TextAlignment.RIGHT)); // Cgst Amount
+
+			String sgstRate = "" + invoiceItem.getSgstRate();
+			itemTableData.addCell(new Paragraph(sgstRate).setTextAlignment(TextAlignment.RIGHT)); // Sgst Rate
+
+			String sgstAmount = Util.roundToTwoDigitStr(invoiceItem.getSgstAmount());
+			itemTableData.addCell(new Paragraph(sgstAmount).setTextAlignment(TextAlignment.RIGHT)); // Sgst Amount
+
+			String igstRate = "" + invoiceItem.getIgstRate();
+			itemTableData.addCell(new Paragraph(igstRate).setTextAlignment(TextAlignment.RIGHT)); // Igst Rate
+
+			String igstAmount = Util.roundToTwoDigitStr(invoiceItem.getIgstAmount());
+			itemTableData.addCell(new Paragraph(igstAmount).setTextAlignment(TextAlignment.RIGHT)); // Igst Amount
+
+			String totalAmount = Util.roundToTwoDigitStr(invoiceItem.getTotalAmount());
+			itemTableData.addCell(new Cell().add(new Paragraph(totalAmount)).setTextAlignment(TextAlignment.RIGHT)); // Total Amount Price
+			itemTableData.addStyle(TIMES_N_8());
 		}
 
 		pageTable.addCell(itemTableHead);
@@ -296,35 +354,68 @@ public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 
 		Table summaryTable = new Table(UnitValue.createPercentArray(itemTableColumnWidths)).setWidth(UnitValue.createPercentValue(100)).setFixedLayout();
 
+		int firstColSpan = 9;
+		int secondColSpan = itemTableColumnWidths.length - firstColSpan;
+
+		// Grand Total
+		Paragraph totalQuantityPara = new Paragraph("" + invoice.getTotalQuantity()).setTextAlignment(TextAlignment.RIGHT);
+		Paragraph totalNetAmountPara = new Paragraph(Util.roundToTwoDigitStr(invoice.getTotalNetAmount())).setTextAlignment(TextAlignment.RIGHT);
+		Paragraph totalCgstAmountPara = new Paragraph(Util.roundToTwoDigitStr(invoice.getTotalCgstAmount())).setTextAlignment(TextAlignment.RIGHT);
+		Paragraph totalSgstAmountPara = new Paragraph(Util.roundToTwoDigitStr(invoice.getTotalSgstAmount())).setTextAlignment(TextAlignment.RIGHT);
+		Paragraph totalIgstAmountPara = new Paragraph(Util.roundToTwoDigitStr(invoice.getTotalIgstAmount())).setTextAlignment(TextAlignment.RIGHT);
+		Paragraph totalAmountPara = new Paragraph(Util.roundToTwoDigitStr(invoice.getTotalAmount())).setTextAlignment(TextAlignment.RIGHT);
+
+		summaryTable.addCell(new Cell(1, 4).add(new Paragraph("GRAND TOTAL")));
+		summaryTable.addCell(totalQuantityPara);
+		summaryTable.addCell(totalNetAmountPara);
+		summaryTable.addCell("").addCell(totalCgstAmountPara);
+		summaryTable.addCell("").addCell(totalSgstAmountPara);
+		summaryTable.addCell("").addCell(totalIgstAmountPara);
+		summaryTable.addCell(totalAmountPara);
+
 		// Total Amount
-		double totalAmount = invoice.getTotalPrice();
-		String totalAmountInWords = "Total Amount In Words: " + Util.convertToWordsIndianCurrency(totalAmount);
-		Cell totalAmountInWordsCell = new Cell(1, 3).add(new Paragraph(totalAmountInWords)).addStyle(TIMES_N_9());
+		double totalAmount = invoice.getTotalAmount();
+		totalAmountPara = new Paragraph("Total Amount In Words: " + Util.convertToWordsIndianCurrency(totalAmount));
+		Cell blankCell = new Cell(1, firstColSpan).add(totalAmountPara);
 
-		Text totalAmountText = new Text("Total Amount:  ").addStyle(TIMES_N_9()).setTextAlignment(TextAlignment.LEFT);
-		Text totalAmountValueText = new Text("" + totalAmount).addStyle(TIMES_B_9()).setTextAlignment(TextAlignment.RIGHT);
-		Cell totalAmountCell = new Cell(1, 3).add(new Paragraph().add(totalAmountText).add(totalAmountValueText)).setTextAlignment(TextAlignment.RIGHT);
+		Text totalAmountText = new Text("Total Amount:  ").setTextAlignment(TextAlignment.LEFT);
+		Text totalAmountValueText = new Text("" + Util.roundToTwoDigitStr(totalAmount)).setTextAlignment(TextAlignment.RIGHT).setFont(TIMES_B());
+		Cell totalAmountCell = new Cell(1, secondColSpan).add(new Paragraph().add(totalAmountText).add(totalAmountValueText))
+				.setTextAlignment(TextAlignment.RIGHT);
 
-		summaryTable.addCell(totalAmountInWordsCell).addCell(totalAmountCell);
+		summaryTable.addCell(blankCell).addCell(totalAmountCell);
 
-		// GST and Transport Detail
-		Paragraph sgstPara = new Paragraph("SGST");
-		Paragraph cgstPara = new Paragraph("CGST");
+		// Amount in Words and Transport Detail
+		Cell gstDetailCell = new Cell(1, firstColSpan);
+
+		if (InvoiceUtils.isIGST(invoice.getSeller(), invoice.getBuyer())) {
+			double totalIgstAmount = invoice.getTotalIgstAmount();
+			Paragraph igstPara = new Paragraph("IGST in Words: " + Util.convertToWordsIndianCurrency(totalIgstAmount));
+			gstDetailCell.add(igstPara);
+
+		} else {
+			double totalCgstAmount = invoice.getTotalCgstAmount();
+			Paragraph cgstPara = new Paragraph("CGST in Words: " + Util.convertToWordsIndianCurrency(totalCgstAmount));
+			double totalSgstAmount = invoice.getTotalSgstAmount();
+			Paragraph sgstPara = new Paragraph("SGST in Words: " + Util.convertToWordsIndianCurrency(totalSgstAmount));
+			gstDetailCell.add(cgstPara).add(sgstPara);
+		}
+
 		Paragraph reverseChargePara = new Paragraph("Whether reverse charge applicable: NO");
-		Cell gstDetailCell = new Cell(1, 3).add(sgstPara).add(cgstPara).add(reverseChargePara);
+		gstDetailCell.add(reverseChargePara);
 
 		Paragraph vehicleCell = new Paragraph("Vehicle Number: ");
 		Paragraph transporterCell = new Paragraph("Transporter: ");
-		Cell transportDetailCell = new Cell(1, 3).add(vehicleCell).add(transporterCell);
+		Cell transportDetailCell = new Cell(1, secondColSpan).add(vehicleCell).add(transporterCell);
 
-		summaryTable.addCell(gstDetailCell).addCell(transportDetailCell).addStyle(TIMES_N_9());
+		summaryTable.addCell(gstDetailCell).addCell(transportDetailCell);
 
 		// Remark and Signature
-		Cell remarksCell = new Cell(1, 3).add(new Paragraph("Remarks: "));
-		Cell authorizedSignatureCell = new Cell(1, 3).add(new Paragraph("\nAuthorized Signature: "));
-		summaryTable.addCell(remarksCell).addCell(authorizedSignatureCell).addStyle(TIMES_N_9());
+		Cell remarksCell = new Cell(1, firstColSpan).add(new Paragraph("Remarks: "));
+		Cell authorizedSignatureCell = new Cell(1, secondColSpan).add(new Paragraph("\nAuthorized Signature: "));
+		summaryTable.addCell(remarksCell).addCell(authorizedSignatureCell);
 
-		pageTable.addCell(summaryTable);
+		pageTable.addCell(summaryTable).addStyle(TIMES_N_8());
 	}
 
 	@Override
@@ -334,21 +425,29 @@ public class GenericInvoicePDF implements InvoiceStructure, InvoiceBuilder {
 		Table footerTable = new Table(1).setWidth(UnitValue.createPercentValue(100));
 
 		String regOfficeText = "Reg. Office: Building, shop no. G31 Celekon, Jasola Vihar, New Delhi, Delhi 110025";
-		Paragraph regOfficePara = new Paragraph(regOfficeText).addStyle(TIMES_N_8());
+		Paragraph regOfficePara = new Paragraph(regOfficeText).setFont(TIMES_N());
 
 		String websiteText = "Website: https://www.samsung.com/in";
-		Paragraph websitePara = new Paragraph(websiteText).addStyle(TIMES_N_8());
+		Paragraph websitePara = new Paragraph(websiteText).setFont(TIMES_N());
 
 		String computerGeneratedText = "This is computer generated invoice";
-		Paragraph computerGeneratedPara = new Paragraph(computerGeneratedText).addStyle(TIMES_B_8());
+		Paragraph computerGeneratedPara = new Paragraph(computerGeneratedText).setFont(TIMES_B());
 
 		Cell footerCell = new Cell().add(regOfficePara).add(websitePara).add(computerGeneratedPara);
-		footerTable.addCell(footerCell).setTextAlignment(TextAlignment.CENTER);
+		footerTable.addCell(footerCell).setTextAlignment(TextAlignment.CENTER).setFontSize(7);
 
 		pageTable.addCell(footerTable);
 	}
 
 	// ===============================================================================
+
+	protected PdfFont TIMES_N() {
+		return PdfUtils.font(StandardFonts.TIMES_ROMAN);
+	}
+
+	protected PdfFont TIMES_B() {
+		return PdfUtils.font(StandardFonts.TIMES_BOLD);
+	}
 
 	protected Style TIMES_N_8() {
 		return PdfUtils.fontStyle(StandardFonts.TIMES_ROMAN, 8);
